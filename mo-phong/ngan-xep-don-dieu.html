@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mô phỏng ngăn xếp đơn điệu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Ý tưởng bố cục: sân khấu mô phỏng bên trái, ngăn xếp + mã giả bên phải; màu nước sông (teal) cho ngăn xếp, hổ phách cho phần tử đang xét. */
+:root {
+  --bg: #f3f6f6;
+  --surface: #ffffff;
+  --ink: #13252b;
+  --muted: #587077;
+  --line: #d3dee0;
+  --accent: #0f7488;
+  --accent-soft: #d6eef2;
+  --current: #c9730a;
+  --current-soft: #fbe9cf;
+  --removed: #a84c64;
+  --good: #1f7a4d;
+  --bad: #b3362f;
+  --font-body: "Be Vietnam Pro", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e191c; --surface: #152429; --ink: #e2eef0; --muted: #94abb0; --line: #2b3f44;
+    --accent: #2db7cc; --accent-soft: #163d45; --current: #f0a03a; --current-soft: #4a3415;
+    --removed: #e07d95; --good: #5ccf93; --bad: #f08a83; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e191c; --surface: #152429; --ink: #e2eef0; --muted: #94abb0; --line: #2b3f44;
+  --accent: #2db7cc; --accent-soft: #163d45; --current: #f0a03a; --current-soft: #4a3415;
+  --removed: #e07d95; --good: #5ccf93; --bad: #f08a83; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 20px 16px 40px; display: grid; gap: 16px; }
+header h1 { font-size: 24px; line-height: 1.25; margin: 0 0 4px; text-wrap: balance; }
+header p { margin: 0; color: var(--muted); max-width: 70ch; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.card h2 { font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; font-weight: 600; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tab { border: 1px solid var(--line); background: var(--bg); color: var(--ink); padding: 8px 14px; border-radius: 999px; font: inherit; font-weight: 600; cursor: pointer; }
+.tab[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.setup { display: grid; gap: 12px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+label { font-size: 14px; color: var(--muted); }
+select, input[type="text"] { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; }
+input[type="text"] { font-family: var(--font-mono); min-width: 0; flex: 1 1 220px; }
+button { font: inherit; cursor: pointer; }
+.btn { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 8px; padding: 7px 12px; font-weight: 500; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); font-weight: 600; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.chip { border: 1px dashed var(--line); background: transparent; color: var(--ink); border-radius: 999px; padding: 4px 10px; font-family: var(--font-mono); font-size: 13px; }
+.chip:hover { border-color: var(--accent); }
+:focus-visible { outline: 2px solid var(--current); outline-offset: 2px; }
+.err { color: var(--bad); font-size: 14px; min-height: 1.2em; margin: 0; }
+.main { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.main > *, .side > * { min-width: 0; }
+@media (max-width: 820px) { .main { grid-template-columns: 1fr; } }
+.stage svg { width: 100%; height: auto; display: block; }
+.narr { margin-top: 10px; padding: 10px 12px; border-left: 3px solid var(--accent); background: var(--accent-soft); border-radius: 0 8px 8px 0; min-height: 3.2em; }
+.narr.ask { border-left-color: var(--current); background: var(--current-soft); }
+.narr .fb-good { color: var(--good); font-weight: 600; }
+.narr .fb-bad { color: var(--bad); font-weight: 600; }
+.controls { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.counter { margin-left: auto; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.side { display: grid; gap: 16px; }
+.stack { display: flex; flex-direction: column; gap: 6px; min-height: 140px; justify-content: flex-end; }
+.stack .item { display: flex; justify-content: space-between; align-items: center; border: 1.5px solid var(--accent); background: var(--accent-soft); border-radius: 8px; padding: 6px 10px; font-size: 14px; font-variant-numeric: tabular-nums; }
+.stack .item.cmp { border-color: var(--current); background: var(--current-soft); }
+.stack .item.ground { border-style: dashed; border-color: var(--line); background: transparent; color: var(--muted); }
+.stack .tag { font-family: var(--font-body); font-size: 12px; color: var(--muted); }
+.stack .empty { color: var(--muted); font-size: 14px; text-align: center; padding: 18px 0; border: 1px dashed var(--line); border-radius: 8px; }
+.stack-ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 6px; }
+pre.code { margin: 0; font-family: var(--font-mono); font-size: 13px; line-height: 1.7; overflow-x: auto; }
+pre.code span { display: block; padding: 0 8px; border-radius: 6px; white-space: pre; }
+pre.code span.on { background: var(--current-soft); box-shadow: inset 3px 0 0 var(--current); }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+.stat b { display: block; font-size: 20px; font-variant-numeric: tabular-nums; }
+.stat small { color: var(--muted); font-size: 12px; }
+.ansbox { overflow-x: auto; }
+table.ans { border-collapse: collapse; font-variant-numeric: tabular-nums; font-family: var(--font-mono); font-size: 14px; }
+table.ans th { text-align: left; font-family: var(--font-body); font-weight: 600; color: var(--muted); font-size: 13px; padding: 4px 10px 4px 0; white-space: nowrap; }
+table.ans td { text-align: center; min-width: 34px; padding: 4px 6px; border: 1px solid var(--line); }
+table.ans td.cur { background: var(--current-soft); }
+table.ans td.new { background: var(--accent-soft); font-weight: 600; }
+ul.steps { margin: 0; padding-left: 18px; }
+ul.steps li { font-variant-numeric: tabular-nums; }
+.note { color: var(--muted); font-size: 13px; margin: 8px 0 0; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--muted); margin-top: 8px; }
+.legend i { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: -2px; margin-right: 5px; }
+.hidden { display: none !important; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Ngăn xếp đơn điệu: mô phỏng từng bước</h1>
+    <p>Đi kèm bài 2.4 của bộ sách tự học Lập trình thi đấu. Nhập dãy của riêng em, bấm <b>Bước tiếp</b> (hoặc phím →) và quan sát phần tử nào bị bỏ khỏi ngăn xếp, vì sao.</p>
+  </header>
+
+  <section class="card setup" aria-label="Thiết lập">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tab-near" aria-selected="true">Phần tử gần nhất (Ngắm pháo hoa)</button>
+      <button class="tab" role="tab" id="tab-brick" aria-selected="false">Xây tường</button>
+    </div>
+    <div class="row" id="near-opts">
+      <label for="sel-dir">Tìm phần tử gần nhất ở bên</label>
+      <select id="sel-dir"><option value="left">trái</option><option value="right">phải</option></select>
+      <label for="sel-cmp">có giá trị</label>
+      <select id="sel-cmp">
+        <option value="gt">lớn hơn hẳn</option><option value="lt">nhỏ hơn hẳn</option>
+        <option value="ge">lớn hơn hoặc bằng</option><option value="le">nhỏ hơn hoặc bằng</option>
+      </select>
+    </div>
+    <div class="row">
+      <label for="inp">Dãy số</label>
+      <input type="text" id="inp" value="5 3 4 1 6 2" spellcheck="false" autocomplete="off">
+      <button class="btn primary" id="btn-apply">Dùng dãy này</button>
+      <button class="btn" id="btn-rand">Dãy ngẫu nhiên</button>
+    </div>
+    <div class="row" id="samples" aria-label="Dãy mẫu"></div>
+    <div class="row">
+      <input type="checkbox" id="chk-predict"><label for="chk-predict">Đoán trước: trước khi ghi mỗi đáp án, em phải tự chọn đáp án</label>
+    </div>
+    <p class="err" id="err" role="alert"></p>
+  </section>
+
+  <div class="main">
+    <section class="card stage" aria-label="Sân khấu mô phỏng">
+      <h2 id="stage-title">Dãy và trạng thái</h2>
+      <svg id="svg" viewBox="0 0 720 330" role="img" aria-label="Biểu đồ cột của dãy số"></svg>
+      <div class="legend" id="legend"></div>
+      <div class="narr" id="narr" aria-live="polite"></div>
+      <div class="controls">
+        <button class="btn" id="btn-back" title="Phím ←">← Lùi</button>
+        <button class="btn primary" id="btn-next" title="Phím →">Bước tiếp →</button>
+        <button class="btn" id="btn-play" title="Phím cách">Tự chạy</button>
+        <button class="btn" id="btn-reset">Về đầu</button>
+        <label for="speed">Tốc độ</label>
+        <input type="range" id="speed" min="1" max="5" value="3">
+        <span class="counter" id="counter"></span>
+      </div>
+    </section>
+
+    <aside class="side">
+      <section class="card">
+        <h2>Ngăn xếp</h2>
+        <div class="stack" id="stack"></div>
+        <div class="stack-ends"><span id="stack-note">↑ đỉnh ở trên</span><span>đáy ở dưới</span></div>
+      </section>
+      <section class="card">
+        <h2>Mã giả</h2>
+        <pre class="code" id="code"></pre>
+      </section>
+      <section class="card">
+        <h2>Đếm thao tác</h2>
+        <div class="stats" id="stats"></div>
+        <p class="note" id="stats-note"></p>
+      </section>
+    </aside>
+  </div>
+
+  <section class="card">
+    <h2 id="ans-title">Đáp án</h2>
+    <div class="ansbox" id="ansbox"></div>
+  </section>
+</div>
+
+<script>
+// Bộ sinh "khung hình" cho mô phỏng ngăn xếp đơn điệu.
+// Thuần logic, không đụng tới DOM, để kiểm thử được bằng Node.
+
+const CMP = {
+  gt: { label: 'lớn hơn hẳn', keep: (t, x) => t > x, popSym: '≤' },
+  lt: { label: 'nhỏ hơn hẳn', keep: (t, x) => t < x, popSym: '≥' },
+  ge: { label: 'lớn hơn hoặc bằng', keep: (t, x) => t >= x, popSym: '<' },
+  le: { label: 'nhỏ hơn hoặc bằng', keep: (t, x) => t <= x, popSym: '>' },
+};
+
+// Chế độ "gần nhất": dir = 'left' | 'right', cmp = 'gt' | 'lt' | 'ge' | 'le'
+// h: mảng giá trị, chỉ số hiển thị bắt đầu từ 1.
+function nearestFrames(h, dir, cmp) {
+  const n = h.length;
+  const c = CMP[cmp];
+  const frames = [];
+  const st = [];
+  const ans = Array(n).fill(null);
+  const removed = new Set();
+  let pushes = 0, pops = 0, compares = 0;
+  const order = [];
+  for (let k = 0; k < n; k++) order.push(dir === 'left' ? k : n - 1 - k);
+  const done = new Set();
+  const snap = (extra) => frames.push({
+    stack: st.slice(), ans: ans.slice(), removed: [...removed], done: [...done],
+    pushes, pops, compares, ...extra,
+  });
+  snap({ i: null, line: 1, msg: 'Bắt đầu với ngăn xếp rỗng. Ngăn xếp sẽ chứa chỉ số của các phần tử còn có thể là đáp án.' });
+  for (const i of order) {
+    snap({ i, line: 2, msg: `Xét phần tử ${i + 1} (giá trị ${h[i]}).` });
+    while (true) {
+      if (st.length === 0) {
+        snap({ i, line: 3, msg: 'Ngăn xếp rỗng nên dừng vòng lặp.' });
+        break;
+      }
+      const t = st[st.length - 1];
+      compares++;
+      if (c.keep(h[t], h[i])) {
+        snap({ i, line: 3, cmpWith: t, msg: `Đỉnh là phần tử ${t + 1} (giá trị ${h[t]}). ${h[t]} ${symKeep(cmp)} ${h[i]} nên nó thỏa điều kiện: dừng, giữ lại.` });
+        break;
+      }
+      snap({ i, line: 3, cmpWith: t, msg: `Đỉnh là phần tử ${t + 1} (giá trị ${h[t]}). ${h[t]} ${c.popSym} ${h[i]} nên nó không thỏa điều kiện.` });
+      st.pop(); pops++; removed.add(t);
+      snap({ i, line: 4, popped: t, msg: `Bỏ phần tử ${t + 1}. Từ nay nó không thể là đáp án của ai: phần tử ${i + 1} gần hơn và "mạnh" hơn nó.` });
+    }
+    const a = st.length ? st[st.length - 1] : -1;
+    ans[i] = a;
+    snap({ i, line: 5, answer: a, msg: a >= 0
+      ? `Đỉnh còn lại là phần tử ${a + 1}, đó chính là đáp án của phần tử ${i + 1}.`
+      : `Ngăn xếp rỗng: phần tử ${i + 1} không có đáp án, ghi 0.` });
+    st.push(i); pushes++; done.add(i);
+    snap({ i, line: 6, pushed: i, msg: `Đẩy phần tử ${i + 1} vào ngăn xếp. Giá trị trong ngăn xếp vẫn đơn điệu.` });
+  }
+  snap({ i: null, line: 0, finished: true, msg: `Xong. Có ${pushes} lần đẩy và ${pops} lần bỏ, tổng ${pushes + pops} ≤ 2n = ${2 * n} thao tác.` });
+  return frames;
+}
+
+function symKeep(cmp) {
+  return { gt: '>', lt: '<', ge: '≥', le: '≤' }[cmp];
+}
+
+// Chế độ Xây tường: ngăn xếp các "nấc" độ cao, đáy là mặt đất 0.
+// Mỗi nấc mở ra = 1 bước xếp: đoạn [start, end], từ độ cao parent lên level.
+function brickFrames(a) {
+  const n = a.length;
+  const frames = [];
+  const st = [{ level: 0, start: 0, parent: 0, step: 0 }];
+  const blocks = []; // nấc đã đóng: {start, end, parent, level, step}
+  let ans = 0, pops = 0;
+  const snap = (extra) => frames.push({
+    stack: st.map(s => ({ ...s })), blocks: blocks.map(b => ({ ...b })), ans, pops, ...extra,
+  });
+  snap({ i: null, line: 1, msg: 'Ngăn xếp chỉ có mặt đất (độ cao 0). Chưa có bước xếp nào.' });
+  for (let i = 0; i < n; i++) {
+    const x = a[i];
+    snap({ i, line: 2, msg: `Xét ô ${i + 1}, cần cao ${x}.` });
+    while (st[st.length - 1].level > x) {
+      const t = st[st.length - 1];
+      snap({ i, line: 3, cmpLevel: t.level, msg: `Nấc trên cùng cao ${t.level} > ${x}: nấc này không thể kéo sang ô ${i + 1}.` });
+      st.pop(); pops++;
+      blocks.push({ start: t.start, end: i - 1, parent: t.parent, level: t.level, step: t.step });
+      snap({ i, line: 4, closed: t.step, msg: `Đóng nấc cao ${t.level}: đó là bước ${t.step}, đặt tấm dày ${t.level - t.parent} lên ${t.start + 1 === i ? 'ô ' + i : 'các ô ' + (t.start + 1) + '..' + i}.` });
+    }
+    const top = st[st.length - 1];
+    if (top.level < x) {
+      ans++;
+      st.push({ level: x, start: i, parent: top.level, step: ans });
+      snap({ i, line: 6, opened: ans, msg: `Nấc trên cùng cao ${top.level} < ${x}: mở nấc mới cao ${x}. Đây là bước ${ans}.` });
+    } else {
+      snap({ i, line: 5, kept: top.step, msg: x === 0
+        ? `Ô ${i + 1} cao 0: không cần xếp gì.`
+        : `Nấc trên cùng cao đúng ${x}: nấc đó kéo dài thêm tới ô ${i + 1}, không tốn bước mới.` });
+    }
+  }
+  while (st.length > 1) {
+    const t = st.pop(); pops++;
+    blocks.push({ start: t.start, end: n - 1, parent: t.parent, level: t.level, step: t.step });
+  }
+  snap({ i: null, line: 0, finished: true, msg: `Hết dãy, đóng mọi nấc còn mở. Số bước ít nhất là ${ans}.` });
+  return frames;
+}
+
+if (typeof module !== 'undefined') module.exports = { nearestFrames, brickFrames, CMP };
+
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const SAMPLES = {
+    near: [['5 3 4 1 6 2', 'ví dụ trong bài'], ['2 7 3 3 5 1 8', 'câu hỏi 1'], ['1 2 3 4 5 6 7 8', 'tăng dần'], ['3 3', 'bẫy < và ≤'], ['8 6 7 3 5 1 4 2', 'răng cưa']],
+    brick: [['2 4 2 3 3', 'ví dụ của bài'], ['3 1 3', 'hai nấc bằng nhau bị ngắt'], ['2 2 0 2 2', 'có ô cao 0'], ['1 3 2 4 2 3 1', 'nhiều tầng']],
+  };
+  const PALETTE = ['#0f7488', '#c9730a', '#6b4fa3', '#1f7a4d', '#a84c64', '#3b6fb6', '#8a6d1d', '#2f8f8a'];
+
+  const state = { mode: 'near', h: [5, 3, 4, 1, 6, 2], dir: 'left', cmp: 'gt', frames: [], pos: 0, timer: null,
+                  predict: false, asking: null, feedback: null, predicted: new Set() };
+
+  function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+  function el(tag, attrs, parent) {
+    const e = document.createElementNS(svgNS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+
+  function parseInput() {
+    const raw = $('inp').value.trim();
+    if (!raw) return 'Hãy nhập ít nhất một số.';
+    const parts = raw.split(/[\s,;]+/);
+    const nums = parts.map(Number);
+    if (nums.some((x) => !Number.isInteger(x))) return 'Chỉ nhập số nguyên, cách nhau bởi dấu cách.';
+    if (nums.length > 16) return 'Để dễ quan sát, dãy có tối đa 16 số.';
+    if (nums.some((x) => x < 0 || x > 20)) return 'Mỗi số nằm trong khoảng 0 đến 20.';
+    return nums;
+  }
+
+  function build() {
+    stop();
+    state.frames = state.mode === 'near' ? nearestFrames(state.h, state.dir, state.cmp) : brickFrames(state.h);
+    state.pos = 0; state.asking = null; state.feedback = null; state.predicted = new Set();
+    renderStatic(); render();
+  }
+
+  function renderStatic() {
+    $('near-opts').classList.toggle('hidden', state.mode !== 'near');
+    $('tab-near').setAttribute('aria-selected', state.mode === 'near');
+    $('tab-brick').setAttribute('aria-selected', state.mode === 'brick');
+    const box = $('samples'); box.innerHTML = '';
+    const lab = document.createElement('label'); lab.textContent = 'Dãy mẫu:'; box.appendChild(lab);
+    for (const [s, t] of SAMPLES[state.mode]) {
+      const b = document.createElement('button'); b.className = 'chip'; b.textContent = s; b.title = t;
+      b.addEventListener('click', () => { $('inp').value = s; apply(); });
+      box.appendChild(b);
+    }
+    const lg = $('legend');
+    if (state.mode === 'near') {
+      lg.innerHTML = `<span><i style="background:${css('--current-soft')};border:2px solid ${css('--current')}"></i>đang xét</span>` +
+        `<span><i style="background:${css('--accent-soft')};border:2px solid ${css('--accent')}"></i>trong ngăn xếp</span>` +
+        `<span><i style="border:2px dashed ${css('--removed')}"></i>đã bị bỏ</span>` +
+        `<span><i style="background:${css('--line')}"></i>chưa xét</span>`;
+      $('stage-title').textContent = 'Dãy và trạng thái';
+      $('ans-title').textContent = 'Đáp án (0 = không có)';
+      $('stack-note').textContent = '↑ đỉnh ở trên';
+    } else {
+      lg.innerHTML = `<span><i style="border:2px dashed ${css('--muted')}"></i>độ cao cần đạt</span>` +
+        `<span><i style="background:${PALETTE[0]};opacity:.55"></i>mỗi màu là một bước xếp</span>` +
+        `<span><i style="background:${css('--current-soft')};border:2px solid ${css('--current')}"></i>ô đang xét</span>`;
+      $('stage-title').textContent = 'Các bước xây tường';
+      $('ans-title').textContent = 'Các bước đã xếp';
+      $('stack-note').textContent = '↑ nấc cao nhất ở trên';
+    }
+    const lines = state.mode === 'near' ? codeNear() : codeBrick();
+    $('code').innerHTML = lines.map((l, k) => `<span data-line="${k + 1}">${l}</span>`).join('');
+  }
+
+  function codeNear() {
+    const c = CMP[state.cmp];
+    const loop = state.dir === 'left' ? 'với i từ 1 đến n:' : 'với i từ n về 1:';
+    return ['ngăn_xếp ← rỗng', loop,
+      `    trong khi ngăn_xếp ≠ rỗng và h[đỉnh] ${c.popSym} h[i]:`,
+      '        bỏ đỉnh',
+      '    đáp_án[i] ← (rỗng ? 0 : đỉnh)',
+      '    đẩy i vào ngăn_xếp'];
+  }
+  function codeBrick() {
+    return ['ngăn_xếp ← [0];  số_bước ← 0', 'với mỗi ô x từ trái sang phải:',
+      '    trong khi đỉnh > x:',
+      '        bỏ đỉnh          // nấc đó kết thúc',
+      '    nếu đỉnh = x: nấc đó kéo dài',
+      '    nếu đỉnh < x: đẩy x; số_bước += 1'];
+  }
+
+  function render() {
+    const f = state.frames[state.pos];
+    if (state.mode === 'near') drawNear(f); else drawBrick(f);
+    // mã giả
+    document.querySelectorAll('#code span').forEach((s) => s.classList.toggle('on', Number(s.dataset.line) === f.line));
+    // lời dẫn
+    const narr = $('narr');
+    narr.classList.toggle('ask', !!state.asking);
+    if (state.asking) {
+      narr.innerHTML = `<b>Em đoán xem:</b> đáp án của phần tử ${state.asking.i + 1} là phần tử nào? Bấm vào một cột bên ${state.dir === 'left' ? 'trái' : 'phải'} nó, hoặc <button class="btn" id="btn-none">Không có (0)</button>`;
+      $('btn-none').addEventListener('click', () => answerGuess(-1));
+    } else {
+      narr.innerHTML = (state.feedback ? state.feedback + ' ' : '') + f.msg;
+    }
+    $('counter').textContent = `Khung ${state.pos + 1}/${state.frames.length}`;
+    $('btn-back').disabled = state.pos === 0 && !state.asking;
+    $('btn-next').disabled = !!state.asking || state.pos === state.frames.length - 1;
+    renderStack(f); renderStats(f); renderAnswers(f);
+  }
+
+  // ---------- Chế độ phần tử gần nhất ----------
+  function drawNear(f) {
+    const svg = $('svg'); svg.innerHTML = '';
+    const h = state.h, n = h.length, W = 720, base = 270, maxH = Math.max(1, ...h), unit = 200 / maxH;
+    const gap = 8, bw = Math.min(64, (W - 40 - gap * (n - 1)) / n);
+    const total = n * bw + (n - 1) * gap, x0 = (W - total) / 2;
+    const X = (k) => x0 + k * (bw + gap);
+    const inStack = new Set(f.stack), removed = new Set(f.removed), done = new Set(f.done);
+    el('line', { x1: 16, x2: W - 16, y1: base, y2: base, stroke: css('--line'), 'stroke-width': 1.5 }, svg);
+    const accent = css('--accent'), cur = css('--current');
+    for (let k = 0; k < n; k++) {
+      const hh = Math.max(h[k] * unit, 2), y = base - hh;
+      let fill = css('--line'), stroke = 'none', dash = '', sw = 1.5, op = 1;
+      if (k === f.i) { fill = css('--current-soft'); stroke = cur; sw = 2.5; }
+      else if (inStack.has(k)) { fill = css('--accent-soft'); stroke = accent; sw = (k === f.cmpWith ? 3 : 1.5); }
+      else if (removed.has(k)) { fill = 'none'; stroke = css('--removed'); dash = '5 4'; }
+      else if (done.has(k)) { op = .5; }
+      if (k === f.popped) { fill = 'none'; stroke = css('--removed'); dash = '5 4'; sw = 2.5; }
+      const g = el('g', { 'data-k': k, style: 'cursor:' + (state.asking ? 'pointer' : 'default') }, svg);
+      el('rect', { x: X(k), y, width: bw, height: hh, rx: 4, fill, stroke, 'stroke-width': sw, 'stroke-dasharray': dash, opacity: op }, g);
+      const t1 = el('text', { x: X(k) + bw / 2, y: y - 7, 'text-anchor': 'middle', 'font-size': 13, fill: css('--muted'), 'font-family': 'var(--font-mono)' }, g); t1.textContent = h[k];
+      const t2 = el('text', { x: X(k) + bw / 2, y: base + 20, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': k === f.i ? 700 : 400, fill: css('--ink') }, g); t2.textContent = k + 1;
+      if (k === f.cmpWith) { const t3 = el('text', { x: X(k) + bw / 2, y: base + 38, 'text-anchor': 'middle', 'font-size': 12, fill: cur, 'font-weight': 600 }, g); t3.textContent = 'đỉnh'; }
+      if (k === f.i) { const t4 = el('text', { x: X(k) + bw / 2, y: base + 38, 'text-anchor': 'middle', 'font-size': 12, fill: cur, 'font-weight': 600 }, g); t4.textContent = 'i'; }
+      g.addEventListener('click', () => { if (state.asking) answerGuess(k); });
+    }
+    // mũi tên đáp án
+    if (f.line >= 5 && f.i !== null && f.answer !== undefined && f.answer >= 0 && !state.asking) {
+      const a = f.answer, i = f.i;
+      const xi = X(i) + bw / 2, xa = X(a) + bw / 2;
+      const yi = base - h[i] * unit - 22, ya = base - h[a] * unit - 22;
+      const peak = Math.max(18, Math.min(yi, ya) - 30);
+      const defs = el('defs', {}, svg);
+      const m = el('marker', { id: 'arr', viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' }, defs);
+      el('path', { d: 'M0 0L10 5L0 10z', fill: cur }, m);
+      el('path', { d: `M${xi} ${yi} Q${(xi + xa) / 2} ${peak} ${xa} ${ya}`, fill: 'none', stroke: cur, 'stroke-width': 2, 'marker-end': 'url(#arr)' }, svg);
+    }
+  }
+
+  // ---------- Chế độ xây tường ----------
+  function drawBrick(f) {
+    const svg = $('svg'); svg.innerHTML = '';
+    const a = state.h, n = a.length, W = 720, base = 270, maxH = Math.max(1, ...a), unit = 210 / maxH;
+    const gap = 4, bw = Math.min(70, (W - 40 - gap * (n - 1)) / n);
+    const total = n * bw + (n - 1) * gap, x0 = (W - total) / 2;
+    const X = (k) => x0 + k * (bw + gap);
+    const Y = (v) => base - v * unit;
+    if (f.i !== null) el('rect', { x: X(f.i) - 2, y: 20, width: bw + 4, height: base - 20, fill: css('--current-soft'), rx: 4 }, svg);
+    el('line', { x1: 16, x2: W - 16, y1: base, y2: base, stroke: css('--line'), 'stroke-width': 1.5 }, svg);
+    // khối: đã đóng + đang mở
+    const blocks = f.blocks.slice();
+    const openEnd = f.i === null ? (f.finished ? n - 1 : -1) : (f.line >= 5 ? f.i : f.i - 1);
+    for (const s of f.stack) if (s.step > 0 && openEnd >= s.start) blocks.push({ ...s, end: openEnd, open: true });
+    blocks.sort((p, q) => p.parent - q.parent);
+    for (const b of blocks) {
+      const col = PALETTE[(b.step - 1) % PALETTE.length];
+      const x = X(b.start), w = X(b.end) + bw - x, y = Y(b.level), hh = Y(b.parent) - Y(b.level);
+      el('rect', { x: x + 1, y: y + 1, width: Math.max(w - 2, 1), height: Math.max(hh - 2, 1), rx: 3, fill: col, 'fill-opacity': b.open ? .35 : .55, stroke: col, 'stroke-width': b.step === f.opened || b.step === f.closed ? 3 : 1.2, 'stroke-dasharray': b.open ? '4 3' : '' }, svg);
+      if (w > 34 && hh > 16) {
+        const t = el('text', { x: x + w / 2, y: y + hh / 2 + 4, 'text-anchor': 'middle', 'font-size': 12, 'font-weight': 700, fill: css('--ink') }, svg);
+        t.textContent = 'B' + b.step;
+      }
+    }
+    // độ cao mục tiêu
+    for (let k = 0; k < n; k++) {
+      if (a[k] > 0) el('rect', { x: X(k), y: Y(a[k]), width: bw, height: a[k] * unit, fill: 'none', stroke: css('--muted'), 'stroke-dasharray': '3 3', 'stroke-width': 1.2 }, svg);
+      const t1 = el('text', { x: X(k) + bw / 2, y: Y(a[k]) - 6, 'text-anchor': 'middle', 'font-size': 13, fill: css('--muted'), 'font-family': 'var(--font-mono)' }, svg); t1.textContent = a[k];
+      const t2 = el('text', { x: X(k) + bw / 2, y: base + 20, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': k === f.i ? 700 : 400, fill: css('--ink') }, svg); t2.textContent = 'ô ' + (k + 1);
+    }
+  }
+
+  function renderStack(f) {
+    const box = $('stack'); box.innerHTML = '';
+    if (state.mode === 'near') {
+      if (!f.stack.length) { box.innerHTML = '<div class="empty">rỗng</div>'; return; }
+      for (let k = f.stack.length - 1; k >= 0; k--) {
+        const idx = f.stack[k], d = document.createElement('div');
+        d.className = 'item' + (idx === f.cmpWith ? ' cmp' : '');
+        d.innerHTML = `<span>phần tử ${idx + 1}</span><span class="tag">giá trị ${state.h[idx]}</span>`;
+        box.appendChild(d);
+      }
+    } else {
+      for (let k = f.stack.length - 1; k >= 0; k--) {
+        const s = f.stack[k], d = document.createElement('div');
+        d.className = 'item' + (s.step === 0 ? ' ground' : '') + (s.level === f.cmpLevel ? ' cmp' : '');
+        d.innerHTML = s.step === 0 ? '<span>mặt đất 0</span><span class="tag">lính canh</span>' : `<span>nấc cao ${s.level}</span><span class="tag">bước ${s.step}, từ ô ${s.start + 1}</span>`;
+        box.appendChild(d);
+      }
+    }
+  }
+
+  function renderStats(f) {
+    const n = state.h.length;
+    if (state.mode === 'near') {
+      $('stats').innerHTML = `<div class="stat"><b>${f.pushes}</b><small>lần đẩy</small></div><div class="stat"><b>${f.pops}</b><small>lần bỏ</small></div><div class="stat"><b>${f.compares}</b><small>lần so sánh</small></div>`;
+      $('stats-note').textContent = `Mỗi phần tử vào 1 lần, ra tối đa 1 lần: đẩy + bỏ ≤ 2n = ${2 * n}. Đó là lý do thuật toán chạy O(n).`;
+    } else {
+      $('stats').innerHTML = `<div class="stat"><b>${f.ans}</b><small>số bước</small></div><div class="stat"><b>${f.stack.length - 1}</b><small>nấc đang mở</small></div><div class="stat"><b>${f.pops}</b><small>nấc đã đóng</small></div>`;
+      $('stats-note').textContent = 'Mỗi nấc mở ra đúng một lần và đóng đúng một lần, nên cả thuật toán chạy O(n).';
+    }
+  }
+
+  function renderAnswers(f) {
+    const box = $('ansbox'); const n = state.h.length;
+    if (state.mode === 'near') {
+      let r1 = '<tr><th>Phần tử</th>', r2 = '<tr><th>Giá trị</th>', r3 = '<tr><th>Đáp án</th>';
+      for (let k = 0; k < n; k++) {
+        const cur = k === f.i ? ' class="cur"' : '';
+        const v = f.ans[k];
+        const isNew = f.line === 5 && k === f.i && !state.asking;
+        r1 += `<td${cur}>${k + 1}</td>`; r2 += `<td${cur}>${state.h[k]}</td>`;
+        r3 += `<td${isNew ? ' class="new"' : cur}>${v === null || (state.asking && k === f.i) ? '' : v + 1}</td>`;
+      }
+      box.innerHTML = `<table class="ans">${r1}</tr>${r2}</tr>${r3}</tr></table>`;
+    } else {
+      const closed = f.blocks.slice().sort((p, q) => p.step - q.step);
+      const items = closed.map((b) => `<li>Bước ${b.step}: đặt tấm dày ${b.level - b.parent} lên các ô từ ô ${b.start + 1} đến ô ${b.end + 1}</li>`).join('');
+      box.innerHTML = items ? `<ul class="steps">${items}</ul>` : '<p class="note">Chưa có bước nào được đóng. Một bước được ghi vào đây khi nấc của nó kết thúc.</p>';
+    }
+  }
+
+  // ---------- Điều khiển ----------
+  function next() {
+    if (state.asking) return;
+    if (state.pos >= state.frames.length - 1) { stop(); return; }
+    const nf = state.frames[state.pos + 1];
+    state.feedback = null;
+    if (state.mode === 'near' && state.predict && nf.line === 5 && !state.predicted.has(nf.i)) {
+      state.asking = { i: nf.i, answer: nf.answer };
+      stop(); render(); return;
+    }
+    state.pos++; render();
+  }
+  function back() {
+    if (state.asking) { state.asking = null; render(); return; }
+    if (state.pos > 0) { state.pos--; state.feedback = null; render(); }
+  }
+  function answerGuess(k) {
+    const q = state.asking; if (!q) return;
+    const ok = k === q.answer;
+    const right = q.answer >= 0 ? `phần tử ${q.answer + 1}` : 'không có (0)';
+    state.feedback = ok ? '<span class="fb-good">Đúng rồi!</span>' : `<span class="fb-bad">Chưa đúng.</span> Đáp án là ${right}.`;
+    state.predicted.add(q.i); state.asking = null; state.pos++; render();
+  }
+  function play() {
+    if (state.timer) { stop(); return; }
+    if (state.pos >= state.frames.length - 1) { state.pos = 0; }
+    $('btn-play').textContent = 'Dừng';
+    const tick = () => { next(); if (state.pos >= state.frames.length - 1 || state.asking) stop(); };
+    state.timer = setInterval(tick, [1600, 1100, 750, 450, 220][Number($('speed').value) - 1]);
+  }
+  function stop() { if (state.timer) clearInterval(state.timer); state.timer = null; $('btn-play').textContent = 'Tự chạy'; }
+  function apply() {
+    const r = parseInput();
+    if (typeof r === 'string') { $('err').textContent = r; return; }
+    $('err').textContent = ''; state.h = r; build();
+  }
+  function setMode(m) {
+    if (state.mode === m) return;
+    state.mode = m;
+    $('inp').value = SAMPLES[m][0][0];
+    try { history.replaceState(null, '', m === 'near' ? '#phao-hoa' : '#xay-tuong'); } catch (e) { /* bỏ qua */ }
+    apply();
+  }
+
+  $('btn-next').addEventListener('click', next);
+  $('btn-back').addEventListener('click', back);
+  $('btn-play').addEventListener('click', play);
+  $('btn-reset').addEventListener('click', () => { stop(); state.pos = 0; state.asking = null; state.feedback = null; state.predicted = new Set(); render(); });
+  $('btn-apply').addEventListener('click', apply);
+  $('inp').addEventListener('keydown', (e) => { if (e.key === 'Enter') apply(); });
+  $('btn-rand').addEventListener('click', () => {
+    const n = 6 + Math.floor(Math.random() * 5), lo = state.mode === 'brick' ? 0 : 1;
+    $('inp').value = Array.from({ length: n }, () => lo + Math.floor(Math.random() * 9)).join(' ');
+    apply();
+  });
+  $('sel-dir').addEventListener('change', (e) => { state.dir = e.target.value; build(); });
+  $('sel-cmp').addEventListener('change', (e) => { state.cmp = e.target.value; build(); });
+  $('chk-predict').addEventListener('change', (e) => { state.predict = e.target.checked; state.asking = null; render(); });
+  $('speed').addEventListener('change', () => { if (state.timer) { stop(); play(); } });
+  $('tab-near').addEventListener('click', () => setMode('near'));
+  $('tab-brick').addEventListener('click', () => setMode('brick'));
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); next(); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); back(); }
+    else if (e.key === ' ') { e.preventDefault(); play(); }
+  });
+  window.addEventListener('hashchange', () => setMode(location.hash === '#xay-tuong' ? 'brick' : 'near'));
+  if (location.hash === '#xay-tuong') { state.mode = 'brick'; $('inp').value = SAMPLES.brick[0][0]; state.h = [2, 4, 2, 3, 3]; }
+  build();
+  // khung mở đầu: đi sẵn tới bước đầu có so sánh để trang không trống
+  for (let s = 0; s < 6 && state.pos < state.frames.length - 1; s++) state.pos++;
+  render();
+})();
+</script>
+</body>
+</html>

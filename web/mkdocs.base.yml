@@ -1,0 +1,81 @@
+site_name: Tự học Lập trình thi đấu
+site_author: Phạm Văn Tú
+copyright: Bản quyền &copy; Phạm Văn Tú · Bộ sách mở, tự do chia sẻ khi ghi nguồn
+site_description: Bộ ebook mở, tiếng Việt, tự học lập trình thi đấu từ HSG lớp 9 tới IOI
+site_url: https://example.github.io/ebook-lap-trinh-thi-dau/
+# repo_url: https://github.com/<tên-tài-khoản>/ebook-lap-trinh-thi-dau
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  language: vi
+  logo: assets/logo.svg
+  favicon: assets/logo.svg
+  font:
+    text: Be Vietnam Pro
+    code: JetBrains Mono
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Chuyển sang nền tối
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Chuyển sang nền sáng
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tracking
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tooltips
+
+extra_css:
+  - assets/extra.css
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - footnotes
+  - def_list
+  - toc:
+      permalink: "#"
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+plugins:
+  - search:
+      lang: vi
+
+extra:
+  generator: false
