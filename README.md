@@ -94,7 +94,7 @@ Mọi góp ý, sửa lỗi, bài mới đều được hoan nghênh qua Issue ho
 
 ## Tác giả
 
-Bộ sách do **Phạm Văn Tú** biên soạn. Mọi góp ý xin gửi qua Issue của kho này.
+Bộ sách do **Phạm Văn Tú** biên soạn cùng một số công cụ. Mọi góp ý xin gửi qua Issue của kho này.
 
 ## Giấy phép
 
