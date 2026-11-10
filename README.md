@@ -1,7 +1,5 @@
 # Tự học Lập trình thi đấu – từ HSG lớp 9 tới IOI
 
-**Tác giả:** Phạm Văn Tú
-
 Bộ ebook mở, viết bằng tiếng Việt, cho học sinh THPT tự học lập trình thi đấu. Lộ trình bám theo lịch thi của học sinh THPT: HSG lớp 9 cấp tỉnh/thành phố, chọn đội tuyển, Olympic 30/4, HSG lớp 12, HSG Quốc gia, rồi APIO và IOI.
 
 Bộ sách khác các tài liệu hiện có ở cách học:
