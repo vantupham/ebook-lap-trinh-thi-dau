@@ -210,7 +210,6 @@ CASES = [
     ("josephus", [("7\n", "2 4 6 1 5 3 7".split())], g_jos, 50, None),
     ("danh_sach_phat", [("8\n1 2 1 3 2 7 4 2\n", ["5"])], g_play, 300, None),
     ("tap_hop", [("6\n+ 5\n+ 2\n? 3\n- 5\n? 3\n? 1\n", ["5", "-1", "2"])], g_set, 300, None),
-    ("noi_day", [("4\n4 3 2 6\n", ["29"]), ("4\n1 1 1 1\n", ["8"])], g_rope, 200, None),
     ("so_le_loi", [("5\n7 3 7 9 3\n", ["9"])], g_xor, 200, None),
     ("tau_ngam_bitset", [("3 4 2\n....\n.#..\n....\nES\n", ["3"])], g_tre, 400, None),
     ("min_cua_so", [("8 3\n1 3 -1 -3 5 3 6 7\n", "-1 -3 -3 -3 3 3".split())], g_win, 300, None),
@@ -228,10 +227,300 @@ CASES = [
 ]
 
 
+# ---------- bổ sung khi nâng cấp Tập 2 ----------
+def g_dosau():
+    s = ""
+    def go(d):
+        nonlocal s
+        for _ in range(R.randint(1, 3)):
+            if len(s) > 30: return
+            s += "("
+            if d < 5 and R.random() < .6: go(d + 1)
+            s += ")"
+    go(0); d = b = 0
+    for c in s:
+        d += 1 if c == "(" else -1; b = max(b, d)
+    return s + "\n", [str(b)]
+
+def g_hauto():
+    def build(k):
+        if k == 0 or R.random() < .3:
+            v = R.randint(0, 20); return str(v), [str(v)]
+        op = R.choice("+-*"); a, ta = build(k - 1); b, tb = build(k - 1)
+        return f"({a}{op}{b})", ta + tb + [op]
+    e, toks = build(R.randint(1, 4))
+    return " ".join(toks) + "\n", [str(eval(e))]
+
+def g_toa():
+    n = R.randint(1, 7); p = list(range(1, n + 1)); R.shuffle(p)
+    seen = set()
+    def dfs(ke, st, k):
+        if k == n: return True
+        key = (ke, st, k)
+        if key in seen: return False
+        seen.add(key)
+        if st and st[-1] == p[k] and dfs(ke, st[:-1], k + 1): return True
+        return ke <= n and dfs(ke + 1, st + (ke,), k)
+    return fmt([n], p), ["YES" if dfs(1, (), 0) else "NO"]
+
+CASES += [
+    ("do_sau", [("(()(()))\n", ["3"])], g_dosau, 200, None),
+    ("hau_to", [("3 4 + 2 *\n", ["14"]), ("5 1 2 + 4 * + 3 -\n", ["14"])], g_hauto, 200, None),
+    ("toatau", [("5\n3 2 5 4 1\n", ["YES"]), ("3\n3 1 2\n", ["NO"])], g_toa, 300, "TOATAU"),
+]
+
+
+def g_capbang():
+    a = arr(R.randint(1, 12), -3, 3); n = len(a)
+    return fmt([n], a), [str(sum(a[i] == a[j] for i in range(n) for j in range(i + 1, n)))]
+
+def g_ve():
+    n, m = R.randint(1, 8), R.randint(1, 8); h, t = arr(n, 1, 10), arr(m, 1, 12); h2 = h[:]; out = []
+    for x in t:
+        c = [v for v in h2 if v <= x]
+        if c: v = max(c); h2.remove(v); out.append(str(v))
+        else: out.append("-1")
+    return fmt([n, m], h, t), out
+
+def g_giuxe():
+    n, q = R.randint(1, 8), R.randint(1, 12); co = [False] * (n + 1); ops = []; out = []
+    for _ in range(q):
+        occ = [i for i in range(1, n + 1) if co[i]]
+        if occ and R.random() < .35:
+            p = R.choice(occ); co[p] = False; ops.append([2, p])
+        else:
+            s = R.randint(1, n); ops.append([1, s]); f = next((i for i in range(s, n + 1) if not co[i]), -1)
+            if f > 0: co[f] = True
+            out.append(str(f))
+    return fmt([n, q], *ops), out
+
+CASES += [
+    ("cap_bang", [("6\n4 -1 4 4 7 -1\n", ["4"])], g_capbang, 200, None),
+    ("ve_ca_nhac", [("5 3\n5 3 7 8 5\n4 8 3\n", ["3", "8", "-1"])], g_ve, 300, None),
+    ("giuxe", [("5 7\n1 2\n1 2\n1 5\n1 4\n2 3\n1 2\n1 5\n", "2 3 5 4 3 -1".split())], g_giuxe, 300, "GIUXE"),
+]
+
+def g_thuk():
+    n, k = R.randint(1, 10), R.randint(1, 4); a = arr(n, 1, 20); out = []
+    for i in range(n):
+        b = sorted(a[:i + 1], reverse=True); out.append(str(b[k - 1]) if len(b) >= k else "-1")
+    return fmt([n, k], a), out
+
+def g_phong():
+    n = R.randint(1, 8); m = []
+    for _ in range(n):
+        s = R.randint(0, 10); m.append([s, s + R.randint(1, 5)])
+    best = max(sum(1 for s, e in m if s <= t < e) for t in range(0, 20))
+    return fmt([n], *m), [str(best)]
+
+def g_viec():
+    n = R.randint(1, 9); v = [[R.randint(1, 5), R.randint(1, 50)] for _ in range(n)]; best = 0
+    for msk in range(1 << n):
+        ch = sorted(v[i][0] for i in range(n) if msk >> i & 1)
+        if all(d >= j + 1 for j, d in enumerate(ch)): best = max(best, sum(v[i][1] for i in range(n) if msk >> i & 1))
+    return fmt([n], *v), [str(best)]
+
+CASES += [
+    ("noi_day", [("4\n4 3 2 6\n", ["29"])], g_rope, 200, None),
+    ("diem_thu_k", [("6 3\n5 9 2 7 8 1\n", "-1 -1 2 5 7 7".split())], g_thuk, 200, None),
+    ("phong_hop", [("4\n1 4\n2 5\n4 7\n5 6\n", ["2"])], g_phong, 300, None),
+    ("vieclam", [("5\n2 50\n1 30\n2 40\n3 10\n1 60\n", ["120"])], g_viec, 300, "VIECLAM"),
+]
+
+def g_tapcon():
+    n = R.randint(1, 8); a = arr(n, 1, 15); S = R.randint(1, 40)
+    ok = any(sum(a[i] for i in range(n) if m >> i & 1) == S for m in range(1 << n))
+    return fmt([n, S], a), ["YES" if ok else "NO"]
+
+def g_haile():
+    k = R.randint(0, 4); vals = R.sample(range(0, 10**18, 7**15), k + 2); p, q = vals[0], vals[1]
+    a = [p, q] + vals[2:] * 2; R.shuffle(a)
+    return fmt([len(a)], a), [str(min(p, q)), str(max(p, q))]
+
+def g_sothich():
+    n, m = R.randint(2, 7), R.randint(1, 6); s = ["".join(R.choice("0001") for _ in range(m)) for _ in range(n)]
+    c = sum(any(s[i][k] == s[j][k] == "1" for k in range(m)) for i in range(n) for j in range(i + 1, n))
+    return fmt([n, m], *[[x] for x in s]), [str(c)]
+
+CASES += [
+    ("tong_tap_con", [("4 9\n2 4 5 8\n", ["YES"]), ("3 4\n3 3 5\n", ["NO"])], g_tapcon, 200, None),
+    ("hai_so_le", [("6\n4 1 2 1 2 6\n", ["4", "6"])], g_haile, 200, None),
+    ("sothich", [("4 5\n10010\n01100\n00011\n01001\n", ["3"])], g_sothich, 300, "SOTHICH"),
+]
+
+def g_maxwin():
+    n = R.randint(1, 10); k = R.randint(1, n); a = arr(n, -9, 9)
+    return fmt([n, k], a), [str(max(a[i:i + k])) for i in range(n - k + 1)]
+
+def g_ondinh():
+    n = R.randint(1, 10); k = R.randint(0, 4); a = arr(n, 1, 8)
+    return fmt([n, k], a), [str(max(r - l + 1 for l in range(n) for r in range(l, n) if max(a[l:r + 1]) - min(a[l:r + 1]) <= k))]
+
+def g_kyhan():
+    n = R.randint(1, 10); A = R.randint(1, n); B = R.randint(A, n); a = arr(n, -9, 9)
+    return fmt([n, A, B], a), [str(max(sum(a[l:r + 1]) for l in range(n) for r in range(l, n) if A <= r - l + 1 <= B))]
+
+CASES += [
+    ("max_cua_so", [("8 3\n4 2 12 3 5 1 6 7\n", "12 12 12 5 6 7".split())], g_maxwin, 200, None),
+    ("doan_on_dinh", [("8 2\n5 3 4 6 9 8 7 10\n", ["3"])], g_ondinh, 300, None),
+    ("kyhan", [("8 2 4\n4 -6 3 -1 5 -9 2 7\n", ["9"])], g_kyhan, 300, "KYHAN"),
+]
+
+def rand_graph(nlo=2, nhi=8):
+    n = R.randint(nlo, nhi); m = R.randint(0, 2 * n); e = []
+    for _ in range(m):
+        u, v = R.randint(1, n), R.randint(1, n)
+        if u != v: e.append([u, v])
+    return n, e
+
+def bfs_dist(n, e, s):
+    adj = [[] for _ in range(n + 1)]
+    for u, v in e: adj[u].append(v); adj[v].append(u)
+    d = [-1] * (n + 1); d[s] = 0; q = deque([s])
+    while q:
+        u = q.popleft()
+        for v in adj[u]:
+            if d[v] < 0: d[v] = d[u] + 1; q.append(v)
+    return d
+
+def g_truyen():
+    n, e = rand_graph()
+    return fmt([n, len(e)], *e), [str(bfs_dist(n, e, 1)[n])]
+
+def g_haidoi():
+    n, e = rand_graph(1, 7)
+    ok = any(all((m >> (u - 1) & 1) != (m >> (v - 1) & 1) for u, v in e) for m in range(1 << n))
+    return fmt([n, len(e)], *e), ["YES" if ok else "NO"]
+
+def g_lantin():
+    Rr, C = R.randint(1, 6), R.randint(1, 6); g = [[R.choice("..#*.") for _ in range(C)] for _ in range(Rr)]
+    if not any("*" in r for r in g): g[R.randrange(Rr)][R.randrange(C)] = "*"
+    cells = [(i, j) for i in range(Rr) for j in range(C)]
+    best = 0
+    for i, j in cells:
+        if g[i][j] != ".": continue
+        # khoảng cách tới * gần nhất bằng BFS ngược từ ô này
+        d = {(i, j): 0}; q = deque([(i, j)]); f = -1
+        while q:
+            x, y = q.popleft()
+            if g[x][y] == "*": f = d[(x, y)]; break
+            for a, b in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                u, v = x + a, y + b
+                if 0 <= u < Rr and 0 <= v < C and g[u][v] != "#" and (u, v) not in d: d[(u, v)] = d[(x, y)] + 1; q.append((u, v))
+        if f < 0: best = -1; break
+        best = max(best, f)
+    return fmt([Rr, C], *[["".join(r)] for r in g]), [str(best)]
+
+CASES += [
+    ("truyen_tin", [("5 5\n1 2\n1 3\n1 4\n2 3\n5 4\n", ["2"])], g_truyen, 300, None),
+    ("hai_doi", [("5 3\n1 2\n1 3\n4 5\n", ["YES"]), ("3 3\n1 2\n2 3\n3 1\n", ["NO"])], g_haidoi, 300, None),
+    ("lantin", [("4 5\n*...#\n.##..\n....#\n#..*.\n", ["3"])], g_lantin, 300, "LANTIN"),
+]
+
+def g_duoivong():
+    n = R.randint(1, 9); s = R.randint(1, n); nx = [0] + [R.randint(1, n) for _ in range(n)]
+    seq = [s]
+    while seq[-1] not in seq[:-1]: seq.append(nx[seq[-1]])
+    b = seq.index(seq[-1]); t = len(seq) - 1
+    return fmt([n, s], nx[1:]), [str(b), str(t - b)]
+
+def comps_count(n, e):
+    p = list(range(n + 1))
+    def f(x):
+        while p[x] != x: x = p[x]
+        return x
+    for u, v in e: p[f(u)] = f(v)
+    roots = [f(i) for i in range(1, n + 1)]
+    return len(set(roots)), max(roots.count(r) for r in set(roots))
+
+def g_xayduong():
+    n = R.randint(1, 8); m = R.randint(1, 8); e = [[R.randint(1, n), R.randint(1, n)] for _ in range(m)]; out = []
+    for i in range(m):
+        a, b = comps_count(n, e[:i + 1]); out += [str(a), str(b)]
+    return fmt([n, m], *e), out
+
+def g_daythua():
+    n = R.randint(2, 8); m = R.randint(1, 9); e = [[R.randint(1, n), R.randint(1, n)] for _ in range(m)]; ans = 0
+    for i in range(m):
+        u, v = e[i]
+        if u == v or bfs_dist(n, e[:i], u)[v] >= 0: ans = i + 1; break
+    return fmt([n, m], *e), [str(ans)]
+
+def g_chuyenthu():
+    n = R.randint(1, 9); p = [R.randint(1, n) for _ in range(n)]; out = []
+    for i in range(1, n + 1):
+        seen = set(); x = i
+        while x not in seen: seen.add(x); x = p[x - 1]
+        out.append(str(len(seen)))
+    return fmt([n], p), out
+
+CASES += [
+    ("duoi_vong", [("6 1\n2 3 4 5 3 1\n", ["2", "3"]), ("3 1\n2 3 1\n", ["0", "3"])], g_duoivong, 300, None),
+    ("xay_duong", [("5 3\n1 2\n1 3\n4 5\n", "4 2 3 3 2 3".split())], g_xayduong, 300, None),
+    ("day_thua", [("4 5\n1 2\n3 4\n2 3\n4 1\n1 3\n", ["4"])], g_daythua, 300, None),
+    ("chuyenthu", [("5\n2 3 1 3 4\n", "3 3 3 4 5".split())], g_chuyenthu, 300, "CHUYENTHU"),
+]
+
+def g_xucxac():
+    n = R.randint(1, 30); dp = [1] + [0] * n
+    for s in range(1, n + 1): dp[s] = sum(dp[s - k] for k in range(1, 7) if k <= s) % (10**9 + 7)
+    return f"{n}\n", [str(dp[n])]
+
+def g_luoi():
+    n = R.randint(1, 6); g = ["".join(R.choice("...*") for _ in range(n)) for _ in range(n)]
+    from functools import lru_cache
+    @lru_cache(None)
+    def f(i, j):
+        if i >= n or j >= n or g[i][j] == "*": return 0
+        if i == n - 1 and j == n - 1: return 1
+        return f(i + 1, j) + f(i, j + 1)
+    return fmt([n], *[[r] for r in g]), [str(f(0, 0))]
+
+def g_ech():
+    n = R.randint(2, 9); K = R.randint(1, 4); h = arr(n, 1, 20); best = None
+    def go(i, c):
+        nonlocal best
+        if i == n - 1: best = c if best is None else min(best, c); return
+        for j in range(i + 1, min(n, i + K + 1)): go(j, c + abs(h[i] - h[j]))
+    go(0, 0)
+    return fmt([n, K], h), [str(best)]
+
+CASES += [
+    ("xuc_xac", [("3\n", ["4"])], g_xucxac, 100, None),
+    ("duong_luoi", [("4\n....\n.*..\n...*\n*...\n", ["3"])], g_luoi, 300, None),
+    ("echnhay", [("6 3\n3 8 2 6 1 5\n", ["4"])], g_ech, 300, "ECHNHAY"),
+]
+
+def g_suaxau():
+    s = "".join(R.choice("AB") for _ in range(R.randint(0, 6))) or "A"; u = "".join(R.choice("AB") for _ in range(R.randint(1, 6)))
+    from functools import lru_cache
+    @lru_cache(None)
+    def E(i, j):
+        if i == 0: return j
+        if j == 0: return i
+        return E(i - 1, j - 1) if s[i - 1] == u[j - 1] else 1 + min(E(i - 1, j), E(i, j - 1), E(i - 1, j - 1))
+    return fmt([s], [u]), [str(E(len(s), len(u)))]
+
+def g_xephop():
+    n = R.randint(1, 8); b = [(R.randint(1, 6), R.randint(1, 6)) for _ in range(n)]
+    from functools import lru_cache
+    @lru_cache(None)
+    def f(i): return 1 + max([f(j) for j in range(n) if b[j][0] < b[i][0] and b[j][1] < b[i][1]] + [0])
+    return fmt([n], *b), [str(max(f(i) for i in range(n)))]
+
+CASES += [
+    ("lis_cham", [("8\n7 3 5 3 6 2 9 8\n", ["4"])], g_lis, 300, None),
+    ("sua_xau", [("LOVE\nMOVIE\n", ["2"])], g_suaxau, 300, None),
+    ("xephop", [("6\n2 3\n5 4\n6 7\n6 4\n1 1\n3 6\n", ["4"])], g_xephop, 300, "XEPHOP"),
+]
+
 def main():
     extract()
     fails = 0
+    only = set(sys.argv[1:])           # python3 kiem_tra.py ten1 ten2: chỉ kiểm vài bài
     for stem, samples, gen, cnt, fio in CASES:
+        if only and stem not in only:
+            continue
         langs = [l for l in ("py", "cpp") if l in PROGS.get(stem, {})]
         if not langs:
             print("THIẾU CODE:", stem); fails += 1; continue

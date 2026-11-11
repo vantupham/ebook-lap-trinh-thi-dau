@@ -16,7 +16,7 @@ int main() {
     int da_noi = 0;
     for (auto [c, a, b] : e) {
         int x = tim(a), y = tim(b);
-        if (x == y) continue;
+        if (x == y) continue;                       // đã thông nhau: bỏ
         cha[x] = y;
         tong += c;
         da_noi++;

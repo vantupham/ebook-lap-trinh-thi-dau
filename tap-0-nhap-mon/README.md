@@ -25,9 +25,11 @@ Tập 0 dạy **song song Python và C++**. Em có thể chọn một ngôn ng�
 ## Cách học một bài
 
 1. Đọc **Bài toán mở màn**, rồi dừng lại 10 phút tự nghĩ. Đừng mở đáp án vội.
-2. Đọc phần kiến thức, **gõ lại** code mẫu (không sao chép), chạy thử với ví dụ.
-3. Làm bài tập theo thứ tự nấc: Khởi động → Luyện → Thử thách. Kẹt 30 phút thì mở gợi ý.
-4. Cuối bài, tự kiểm tra **checkpoint**. Chưa đạt thì ôn lại mục được chỉ.
+2. Mở **trang mô phỏng** của bài (liên kết ở đầu mỗi bài), bật chế độ **Đoán trước** và chạy hết một ví dụ. Mở từng bước trong mục "Chạy từng bước", đoán trước rồi mới xem hình.
+3. Đọc phần kiến thức, **gõ lại** code mẫu (không sao chép), chạy thử với ví dụ.
+4. Làm Ví dụ 2 (điền chỗ trống) và Ví dụ 3 (tự làm) trước khi mở lời giải.
+5. Làm bài tập theo thứ tự nấc: Khởi động → Luyện → Thử thách → Kiểu đề thi. Kẹt 30 phút thì mở gợi ý tầng 1.
+6. Cuối bài, ôn flashcard, làm 3 bài ôn xoắn ốc, rồi tự kiểm tra **checkpoint**. Chưa đạt thì ôn lại mục được chỉ.
 
 ## Checkpoint cuối Tập 0
 

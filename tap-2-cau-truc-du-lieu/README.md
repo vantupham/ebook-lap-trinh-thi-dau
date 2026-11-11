@@ -5,22 +5,24 @@
 > **Mốc tự đo khi học xong:** giải được bài Codeforces mức 1300–1600.
 > **Thời lượng:** khoảng 14 tuần, 8–12 giờ mỗi tuần.
 
-Từ tập này, code trong sách viết bằng **C++**. Mỗi bài có bảng đối chiếu sang Python cho cấu trúc dữ liệu tương ứng; riêng bài 2.5 có lời giải Python vì Python có một kỹ thuật bitset rất gọn.
+Từ tập này, code trong sách viết chủ yếu bằng **C++**. Lời giải chính và bài kiểu đề thi của mỗi bài có thêm bản Python khi Python đủ nhanh; mỗi bài có bảng đối chiếu sang Python cho cấu trúc dữ liệu tương ứng.
+
+Mọi bài 2.1–2.10 đều theo cùng một khuôn: bài toán mở màn, 10 phút tự nghĩ, lời giải ngây thơ, ý tưởng then chốt với hình chạy từng bước, bẫy kèm test phá, ví dụ giảm dần hỗ trợ, bài kiểu đề thi có gợi ý 3 tầng, flashcard và checkpoint. Mỗi bài có **hai trang mô phỏng** (liên kết ở đầu bài; danh sách ở [mo-phong](../mo-phong/)).
 
 ## Mục lục
 
 | Bài | Nội dung chính | Thời lượng | Bài tiêu biểu |
 | --- | --- | --- | --- |
-| [2.1 Ngăn xếp và hàng đợi](bai-2-1-ngan-xep-hang-doi/) | `stack`, `queue`, `deque`; dấu ngoặc hợp lệ; mô phỏng vòng tròn | 1 tuần | CSES Josephus Problem I |
-| [2.2 set và map](bai-2-2-set-map/) | Tập hợp có thứ tự, từ điển, đếm tần suất giá trị lớn | 1,5 tuần | CSES Playlist |
-| [2.3 Hàng đợi ưu tiên](bai-2-3-hang-doi-uu-tien/) | `priority_queue`, luôn lấy phần tử nhỏ nhất | 1 tuần | Nối dây với chi phí nhỏ nhất |
+| [2.1 Ngăn xếp và hàng đợi](bai-2-1-ngan-xep-hang-doi/) | `stack`, `queue`, `deque`; dấu ngoặc; mô phỏng vòng tròn | 1 tuần | Xếp toa tàu |
+| [2.2 set và map](bai-2-2-set-map/) | Tập hợp có thứ tự, từ điển, `lower_bound` trên tập thay đổi | 1,5 tuần | Bãi giữ xe |
+| [2.3 Hàng đợi ưu tiên](bai-2-3-hang-doi-uu-tien/) | `priority_queue`, heap trong mảng, tham lam + heap | 1 tuần | Việc làm thêm |
 | [2.4 Ngăn xếp đơn điệu](bai-2-4-ngan-xep-don-dieu/) | Phần tử gần nhất lớn hơn/nhỏ hơn; có trang mô phỏng | 1 tuần | **Xây tường, 100%** |
-| [2.5 Bit và bitset](bai-2-5-bit-bitset/) | Phép toán bit, xử lý 64 phần tử một lúc | 1,5 tuần | **Tàu ngầm (BOI 2019), 100%** |
-| [2.6 Min trên đoạn](bai-2-6-min-tren-doan/) | Cửa sổ trượt với `deque`, sparse table | 1 tuần | CSES Static Range Minimum Queries |
-| [2.7 Đồ thị: BFS và DFS](bai-2-7-bfs-dfs/) | Danh sách kề, đường đi ngắn nhất không trọng số, thành phần liên thông, lưới | 2 tuần | CSES Labyrinth, Building Roads |
-| [2.8 DSU và đồ thị hàm](bai-2-8-dsu-do-thi-ham/) | Hợp nhất nhóm gần O(1), đồ thị mỗi đỉnh một cung ra | 1 tuần | Tranh điều khiển TV nhìn bằng đồ thị |
-| [2.9 Quy hoạch động 1](bai-2-9-qhd-1/) | Trạng thái và công thức truy hồi; đổi tiền, cái túi | 1,5 tuần | CSES Minimizing Coins, Book Shop |
-| [2.10 Quy hoạch động 2](bai-2-10-qhd-2/) | Dãy con tăng dài nhất, xâu con chung dài nhất | 1,5 tuần | CSES Increasing Subsequence |
+| [2.5 Bit và bitset](bai-2-5-bit-bitset/) | Phép toán bit, XOR, xử lý 64 phần tử một lúc | 1,5 tuần | **Tàu ngầm (BOI 2019), 100%**; Sở thích chung |
+| [2.6 Min trên đoạn](bai-2-6-min-tren-doan/) | Hàng đợi đơn điệu, sparse table | 1 tuần | Kỳ hạn gửi tiền |
+| [2.7 Đồ thị: BFS và DFS](bai-2-7-bfs-dfs/) | Danh sách kề, BFS một và nhiều nguồn, thành phần liên thông, tô hai màu | 2 tuần | Lan tin |
+| [2.8 DSU và đồ thị hàm](bai-2-8-dsu-do-thi-ham/) | Hợp nhất nhóm gần O(1), đuôi và vòng của đồ thị hàm | 1 tuần | Chuyền thư |
+| [2.9 Quy hoạch động 1](bai-2-9-qhd-1/) | Bốn bước QHĐ; đổi tiền, cái túi, đếm cách | 1,5 tuần | Ếch nhảy |
+| [2.10 Quy hoạch động 2](bai-2-10-qhd-2/) | LIS O(n log n), LCS, khoảng cách sửa | 1,5 tuần | Xếp hộp |
 | [2.11 Đề thi thử](bai-2-11-de-thi-thu/) | 3 bài, 120 phút | 1 tuần | Đề tự soạn |
 
 ## Python ↔ C++

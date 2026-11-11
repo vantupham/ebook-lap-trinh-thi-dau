@@ -13,4 +13,8 @@ def may_man(n):
     return la_doi_xung(n) and tong_chu_so(n) % 3 == 0
 
 a, b = map(int, input().split())
-print(sum(1 for n in range(a, b + 1) if may_man(n)))
+dem = 0
+for n in range(a, b + 1):
+    if may_man(n):
+        dem += 1
+print(dem)

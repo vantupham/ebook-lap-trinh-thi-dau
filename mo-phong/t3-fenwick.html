@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cây Fenwick: sửa điểm, hỏi tổng · Mô phỏng từng bước</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Trình phát mô phỏng chung: sân khấu (mảng, biến, ngăn gọi hàm) bên trái, mã nguồn bên phải.
+   Màu chàm cho khung, cam cho phần tử đang xét, xanh lá cho kết quả đúng, đỏ cho phần tử bị loại. */
+:root {
+  --bg: #f4f5fb; --surface: #ffffff; --ink: #1b1d3a; --muted: #5d6188; --line: #dcdff0;
+  --accent: #4338ca; --accent-soft: #e4e3fb; --cur: #ea7a12; --cur-soft: #fdebd6;
+  --ok: #15803d; --ok-soft: #dcf3e3; --bad: #c0392b; --bad-soft: #f9e0dc; --mark: #0e7490; --mark-soft: #d5eff4;
+  --font: "Be Vietnam Pro", "Segoe UI", system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1022; --surface: #181a36; --ink: #e8e9fb; --muted: #a2a6d0; --line: #2d3060;
+  --accent: #8b87ff; --accent-soft: #2a2a5c; --cur: #fb9a3c; --cur-soft: #4a3216; --ok: #4ade80; --ok-soft: #173a26;
+  --bad: #f87171; --bad-soft: #4a1f1f; --mark: #38bdf8; --mark-soft: #12344a; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0f1022; --surface: #181a36; --ink: #e8e9fb; --muted: #a2a6d0; --line: #2d3060;
+  --accent: #8b87ff; --accent-soft: #2a2a5c; --cur: #fb9a3c; --cur-soft: #4a3216; --ok: #4ade80; --ok-soft: #173a26;
+  --bad: #f87171; --bad-soft: #4a1f1f; --mark: #38bdf8; --mark-soft: #12344a; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(--font); }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 18px 16px 48px; display: grid; gap: 14px; }
+header { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+header h1 { margin: 0 0 4px; font-size: 26px; line-height: 1.2; font-weight: 800; }
+header p { margin: 0; color: var(--muted); max-width: 72ch; }
+.top-links { display: flex; gap: 8px; align-items: center; }
+a { color: var(--accent); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+.card h2 { margin: 0 0 10px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.btn { font: inherit; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 10px; padding: 7px 12px; font-weight: 600; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn:disabled { opacity: .4; cursor: default; }
+.chip { font: 13px var(--mono); cursor: pointer; border: 1px dashed var(--line); background: var(--bg); color: var(--ink); border-radius: 999px; padding: 4px 10px; }
+.chip:hover { border-color: var(--accent); }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+textarea { font: 14px/1.4 var(--mono); width: 100%; min-height: 44px; resize: vertical; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+.err { color: var(--bad); font-weight: 600; min-height: 1.2em; margin-top: 4px; }
+.main { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+@media (max-width: 860px) { .main { grid-template-columns: 1fr; } }
+.msg { font-size: 16px; font-weight: 600; min-height: 3.1em; padding: 10px 14px; border-radius: 12px; background: var(--accent-soft); border-left: 5px solid var(--accent); }
+.msg.done { background: var(--ok-soft); border-left-color: var(--ok); }
+.controls { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.controls input[type=range] { flex: 1 1 160px; accent-color: var(--accent); }
+.count { font: 13px var(--mono); color: var(--muted); min-width: 7ch; text-align: right; }
+.stage { display: grid; gap: 14px; }
+.arr-title { font-size: 13px; color: var(--muted); margin-bottom: 4px; font-weight: 600; }
+.arr { display: flex; flex-wrap: wrap; gap: 4px; padding-top: 22px; }
+.cell { position: relative; min-width: 42px; height: 42px; padding: 0 6px; display: grid; place-items: center; font: 600 16px var(--mono);
+  border: 2px solid var(--line); border-radius: 9px; background: var(--surface); transition: background .2s, border-color .2s, transform .2s; }
+.cell .idx { position: absolute; bottom: -18px; font: 11px var(--mono); color: var(--muted); }
+.cell .ptr { position: absolute; top: -22px; font: 700 11px var(--font); color: var(--cur); white-space: nowrap; }
+.cell .ptr::after { content: " ↓"; }
+.arr.has-idx { padding-bottom: 18px; }
+.cell.cur { background: var(--cur-soft); border-color: var(--cur); transform: translateY(-3px); }
+.cell.ok { background: var(--ok-soft); border-color: var(--ok); }
+.cell.bad { background: var(--bad-soft); border-color: var(--bad); text-decoration: line-through; }
+.cell.mark { background: var(--mark-soft); border-color: var(--mark); }
+.cell.done { background: var(--accent-soft); border-color: var(--accent); }
+.cell.dim { opacity: .35; }
+.vars { display: flex; flex-wrap: wrap; gap: 8px; }
+.var { font: 14px var(--mono); padding: 6px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); }
+.var b { color: var(--accent); font-weight: 700; }
+.var.changed { border-color: var(--cur); background: var(--cur-soft); }
+.tape { display: flex; flex-wrap: wrap; gap: 4px; }
+.tok { font: 14px var(--mono); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--line); }
+.tok.read { opacity: .4; }
+.tok.next { border-color: var(--cur); background: var(--cur-soft); font-weight: 700; }
+.stack { display: grid; gap: 4px; }
+.frame { font: 13px var(--mono); padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); }
+.frame:first-child { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+.out { font: 14px var(--mono); white-space: pre-wrap; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; min-height: 2.2em; }
+.code-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
+.code-tabs button[aria-selected=true] { background: var(--accent); color: #fff; border-color: var(--accent); }
+pre.code { margin: 0; font: 13px/1.6 var(--mono); overflow-x: auto; counter-reset: ln; }
+pre.code span { display: block; padding: 0 8px 0 40px; position: relative; border-radius: 6px; white-space: pre; }
+pre.code span::before { counter-increment: ln; content: counter(ln); position: absolute; left: 6px; width: 24px; text-align: right; color: var(--muted); opacity: .6; }
+pre.code span.hl { background: var(--cur-soft); box-shadow: inset 4px 0 0 var(--cur); }
+.guess { display: none; border: 2px solid var(--cur); }
+.guess.show { display: block; }
+.guess .q { font-weight: 700; margin-bottom: 8px; }
+.guess .fb { margin-top: 6px; font-weight: 600; min-height: 1.2em; }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 4px; margin-right: 4px; vertical-align: -1px; border: 2px solid; }
+kbd { font: 12px var(--mono); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 0 5px; }
+.hint { font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1 id="title"></h1>
+      <p id="desc"></p>
+    </div>
+    <div class="top-links">
+      <a id="lesson" class="btn" href="#">← Về bài học</a>
+      <button id="theme" class="btn" title="Đổi nền sáng/tối">Nền sáng/tối</button>
+    </div>
+  </header>
+
+  <section class="card">
+    <h2>Dữ liệu vào</h2>
+    <textarea id="inp" spellcheck="false" aria-label="Dữ liệu vào"></textarea>
+    <div class="err" id="err"></div>
+    <div class="row">
+      <button class="btn primary" id="run">Chạy với dữ liệu này</button>
+      <button class="btn" id="rand">Ngẫu nhiên</button>
+      <span class="hint">Ví dụ:</span>
+      <span class="row" id="samples"></span>
+    </div>
+  </section>
+
+  <div class="msg" id="msg" aria-live="polite"></div>
+  <section class="card guess" id="guess">
+    <div class="q" id="gq"></div>
+    <div class="row" id="gch"></div>
+    <div class="fb" id="gfb"></div>
+  </section>
+  <div class="controls card">
+    <button class="btn" id="first" title="Về đầu">⏮</button>
+    <button class="btn" id="prev" title="Lùi (←)">◀ Lùi</button>
+    <button class="btn primary" id="next" title="Tiếp (→)">Tiếp ▶</button>
+    <button class="btn" id="play" title="Tự chạy (dấu cách)">⏯ Tự chạy</button>
+    <button class="btn" id="last" title="Tới cuối">⏭</button>
+    <input type="range" id="seek" min="0" max="0" value="0" aria-label="Bước">
+    <span class="count" id="count"></span>
+    <label class="hint"><input type="checkbox" id="guessMode"> Đoán trước</label>
+    <label class="hint">Tốc độ <input type="range" id="speed" min="1" max="10" value="5" style="width:80px"></label>
+  </div>
+
+  <div class="main">
+    <section class="card stage" id="stage"></section>
+    <section class="card">
+      <h2>Mã nguồn</h2>
+      <div class="code-tabs" id="codeTabs"></div>
+      <pre class="code" id="code"></pre>
+    </section>
+  </div>
+  <div class="legend">
+    <span><i style="background:var(--cur-soft);border-color:var(--cur)"></i>đang xét</span>
+    <span><i style="background:var(--ok-soft);border-color:var(--ok)"></i>thỏa / kết quả</span>
+    <span><i style="background:var(--bad-soft);border-color:var(--bad)"></i>bị loại</span>
+    <span><i style="background:var(--mark-soft);border-color:var(--mark)"></i>đánh dấu</span>
+    <span><i style="background:var(--accent-soft);border-color:var(--accent)"></i>đã xong</span>
+    <span>Phím tắt: <kbd>←</kbd> <kbd>→</kbd> <kbd>Space</kbd></span>
+  </div>
+</div>
+<script>
+// Tiện ích dùng chung cho mọi thuật toán mô phỏng.
+// Mỗi thuật toán khai báo ALGO = { id, title, desc, lesson, code: {py: [...], cpp: [...]}, samples, parse, random, run }.
+// run(d) trả về mảng khung hình (frame): { at, msg, vars, arrays, stack, tape, out, ask, fig }.
+//   at  : nhãn dòng mã đang chạy; dòng mã nào kết thúc bằng ⟦nhãn⟧ sẽ được tô sáng.
+//   ask : { q, choices, answer } để chế độ "Đoán trước" hỏi trước khi hiện khung này.
+//   fig : true nếu khung này được xuất thành hình SVG tĩnh cho bài học.
+const U = {
+  ints(text, min = 1) {
+    const a = text.trim().split(/\s+/).filter(Boolean).map(Number);
+    if (a.length < min || a.some((x) => !Number.isInteger(x))) throw new Error('Cần nhập ' + (min > 1 ? 'ít nhất ' + min + ' ' : '') + 'số nguyên, cách nhau bởi dấu cách.');
+    return a;
+  },
+  rnd: (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1)),
+  pick: (a) => a[Math.floor(Math.random() * a.length)],
+  shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; },
+  // ba lựa chọn gồm đáp án đúng và hai số gần đó, trộn ngẫu nhiên nhưng cố định theo giá trị
+  near(ans, extra = []) {
+    const s = new Set([ans, ...extra]);
+    for (let d = 1; s.size < 3; d++) { s.add(ans + d); if (s.size < 3 && ans - d >= 0) s.add(ans - d); }
+    return [...s].slice(0, 3).sort((x, y) => x - y);
+  },
+  limit(frames, max = 1500) {
+    if (frames.length > max) throw new Error('Dữ liệu quá lớn để mô phỏng (hơn ' + max + ' bước). Hãy thử dữ liệu nhỏ hơn.');
+    return frames;
+  },
+};
+
+const ALGO = {
+  id: 't3-fenwick', title: 'Cây Fenwick: sửa điểm, hỏi tổng',
+  desc: 't[i] giữ tổng khối dài (i &amp; −i) kết thúc tại i. Hỏi tổng 1..i: cộng t[i] rồi i −= i &amp; −i (xóa bit 1 thấp nhất). Cộng v vào a[i]: cộng v vào t[i] rồi i += i &amp; −i. Mỗi việc tối đa log₂ n bước.',
+  lesson: '../tap-3-do-thi-qhd-nang-cao/bai-3-4-fenwick/',
+  code: {
+    py: ['def cong(i, v):', '    while i <= n: t[i] += v; i += i & -i   ⟦cong⟧', 'def tong(i):', '    s = 0', '    while i > 0: s += t[i]; i -= i & -i   ⟦tong⟧', '    return s', '# 1 k u: cong(k, u - a[k]); a[k] = u', '# 2 l r: print(tong(r) - tong(l - 1))   ⟦in⟧'],
+    cpp: ['void cong(int i, long long v) {', '    for (; i <= n; i += i & -i) t[i] += v;   ⟦cong⟧', '}', 'long long tong(int i) {', '    long long s = 0;', '    for (; i > 0; i -= i & -i) s += t[i];   ⟦tong⟧', '    return s;', '}', '// 1 k u: cong(k, u - a[k]); a[k] = u;', '// 2 l r: cout << tong(r) - tong(l - 1);   ⟦in⟧'],
+  },
+  samples: [['8 4\n3 2 4 5 1 1 5 3\n2 1 4\n1 4 9\n2 1 4\n2 3 5', 'ví dụ trong bài'], ['8 3\n1 1 1 1 1 1 1 1\n2 1 7\n1 3 5\n2 2 8', 'toàn số 1'], ['12 2\n5 3 8 1 9 2 7 4 6 0 3 1\n2 3 11\n1 6 10', 'mười hai phần tử']],
+  parse(t) { const v = U.ints(t, 2), [n, q] = v; if (n < 1 || n > 16 || q < 1 || q > 5) throw new Error('Hãy chọn n ≤ 16, q ≤ 5.'); const a = v.slice(2, 2 + n); if (a.length < n) throw new Error('Thiếu số.'); const ops = []; for (let i = 0; i < q; i++) { const [k, x, y] = v.slice(2 + n + 3 * i, 5 + n + 3 * i); if (k === 1 && x >= 1 && x <= n) ops.push([1, x, y]); else if (k === 2 && x >= 1 && x <= y && y <= n) ops.push([2, x, y]); else throw new Error('Thao tác "1 k u" hoặc "2 l r".'); } return { n, a: [0, ...a], ops }; },
+  random() { const n = U.rnd(8, 12), q = U.rnd(2, 4); return `${n} ${q}\n${Array.from({ length: n }, () => U.rnd(0, 9)).join(' ')}\n` + Array.from({ length: q }, () => { if (Math.random() < .4) return `1 ${U.rnd(1, n)} ${U.rnd(0, 9)}`; const l = U.rnd(1, n); return `2 ${l} ${U.rnd(l, n)}`; }).join('\n'); },
+  run({ n, a, ops }) {
+    const F = [], t = Array(n + 1).fill(0), A = a.slice();
+    for (let i = 1; i <= n; i++) for (let j = i; j <= n; j += j & -j) t[j] += A[i];
+    const lab = [...Array(n).keys()].map((k) => String(k + 1)), khoi = [...Array(n).keys()].map((k) => { const i = k + 1, l = i - (i & -i) + 1; return l === i ? `[${i}]` : `[${l}..${i}]`; });
+    const view = (ht = {}, ha = {}) => [{ name: 'a[i]', values: A.slice(1), labels: lab, hl: ha }, { name: 't[i] (chữ dưới: khối mà t[i] giữ tổng)', values: t.slice(1), labels: khoi, hl: ht }];
+    F.push({ at: 'cong', msg: 'Đã dựng t bằng cách cộng từng a[i] vào cây (n lần "cong").', arrays: view(), vars: {}, fig: true });
+    const out = []; let nf = 0;
+    for (const [k, x, y] of ops) {
+      if (k === 1) { const dv = y - A[x]; A[x] = y; const path = []; for (let i = x; i <= n; i += i & -i) { t[i] += dv; path.push(i); }
+        F.push({ at: 'cong', msg: `Đặt a[${x}] = ${y}: cộng ${dv} vào t tại ${path.join(' → ')} (mỗi bước i += i & −i).`, arrays: view(Object.fromEntries(path.map((i) => [i - 1, 'ok'])), { [x - 1]: 'cur' }), vars: { k: x }, ask: { q: `Sửa a[${x}] làm thay đổi bao nhiêu ô t?`, choices: U.near(path.length), answer: path.length }, fig: nf++ < 4 });
+      } else {
+        const go = (i) => { const p = []; let s = 0; for (; i > 0; i -= i & -i) { s += t[i]; p.push(i); } return [s, p]; };
+        const [sr, pr] = go(y), [sl, pl] = go(x - 1), ans = sr - sl; out.push(ans);
+        const ha = {}; for (let i = x; i <= y; i++) ha[i - 1] = 'mark';
+        F.push({ at: 'tong', msg: `tong(${y}) = ${pr.map((i) => `t[${i}]`).join(' + ')} = ${sr}.`, arrays: view(Object.fromEntries(pr.map((i) => [i - 1, 'ok'])), ha), vars: { l: x, r: y }, ask: { q: `tong(${y}) cộng bao nhiêu ô t?`, choices: U.near(pr.length), answer: pr.length }, fig: nf++ < 4 });
+        F.push({ at: 'tong in', msg: `tong(${x - 1}) = ${pl.length ? pl.map((i) => `t[${i}]`).join(' + ') : '0'} = ${sl}. Tổng [${x}, ${y}] = ${sr} − ${sl} = ${ans}.`, arrays: view(Object.fromEntries(pl.map((i) => [i - 1, 'bad'])), ha), vars: { l: x, r: y }, out: out.join('\n'), fig: nf++ < 4 });
+      }
+    }
+    F.push({ at: 'in', msg: 'Hết thao tác.', arrays: view(), vars: {}, out: out.join('\n') });
+    return F;
+  },
+};
+
+</script>
+<script>
+(function () {
+  const A = ALGO, $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  let frames = [], k = 0, timer = null, lang = Object.keys(A.code)[0], score = [0, 0];
+  $('title').textContent = A.title; $('desc').innerHTML = A.desc || '';
+  $('lesson').href = A.lesson || '#';
+  document.title = A.title + ' · Mô phỏng từng bước';
+  // ----- mã nguồn: thẻ ⟦k⟧ cuối dòng đánh dấu dòng thuộc nhãn k -----
+  const TAG = /\s*⟦(\w+)⟧\s*$/;
+  function renderTabs() {
+    $('codeTabs').innerHTML = Object.keys(A.code).map((l) => `<button class="btn" data-l="${l}" aria-selected="${l === lang}">${l === 'py' ? 'Python' : l === 'cpp' ? 'C++' : l}</button>`).join('');
+    $('codeTabs').querySelectorAll('button').forEach((b) => b.onclick = () => { lang = b.dataset.l; renderTabs(); show(); });
+  }
+  function renderCode(at) {
+    $('code').innerHTML = A.code[lang].map((ln) => {
+      const m = ln.match(TAG); const text = ln.replace(TAG, '');
+      const tags = m ? m[1].split('_') : [];
+      return `<span class="${at && tags.includes(String(at)) ? 'hl' : ''}">${esc(text) || ' '}</span>`;
+    }).join('');
+  }
+  // ----- sân khấu -----
+  function renderArr(a) {
+    const n = a.values.length, hl = a.hl || {}, ptr = a.ptr || {}, base = a.base ?? 0;
+    const cells = a.values.map((v, i) => {
+      const p = Object.entries(ptr).filter(([, j]) => j === i).map(([name]) => name).join(', ');
+      const lab = a.labels ? a.labels[i] : (a.noIdx ? '' : i + base);
+      return `<div class="cell ${hl[i] || ''}" style="${a.width ? 'min-width:' + a.width + 'px' : ''}">${p ? `<span class="ptr">${esc(p)}</span>` : ''}${esc(v)}${lab !== '' ? `<span class="idx">${esc(lab)}</span>` : ''}</div>`;
+    }).join('');
+    return `<div><div class="arr-title">${esc(a.name)}</div><div class="arr ${a.noIdx ? '' : 'has-idx'}" style="${a.cols ? `display:grid;grid-template-columns:repeat(${a.cols},minmax(0,1fr));row-gap:22px` : ''}">${cells || '<span class="hint">(rỗng)</span>'}</div></div>`;
+  }
+  function show() {
+    const f = frames[k] || {}, prev = frames[k - 1] || {};
+    $('msg').innerHTML = f.msg || '';
+    $('msg').className = 'msg' + (k === frames.length - 1 ? ' done' : '');
+    let h = '';
+    if (f.tape) h += `<div><div class="arr-title">Dữ liệu vào (con trỏ đọc)</div><div class="tape">${f.tape.tokens.map((t, i) => `<span class="tok ${i < f.tape.pos ? 'read' : i === f.tape.pos ? 'next' : ''}">${esc(t)}</span>`).join('')}</div></div>`;
+    (f.arrays || []).forEach((a) => h += renderArr(a));
+    if (f.vars) h += `<div><div class="arr-title">Biến</div><div class="vars">${Object.entries(f.vars).map(([n, v]) => `<span class="var ${prev.vars && prev.vars[n] !== v ? 'changed' : ''}"><b>${esc(n)}</b> = ${esc(v)}</span>`).join('')}</div></div>`;
+    if (f.stack) h += `<div><div class="arr-title">Ngăn gọi hàm (trên cùng là hàm đang chạy)</div><div class="stack">${f.stack.slice().reverse().map((s) => `<div class="frame">${esc(s)}</div>`).join('')}</div></div>`;
+    if (f.out !== undefined) h += `<div><div class="arr-title">Màn hình / tệp kết quả</div><div class="out">${esc(f.out)}</div></div>`;
+    $('stage').innerHTML = h;
+    renderCode(f.at);
+    $('seek').max = frames.length - 1; $('seek').value = k;
+    $('count').textContent = `${k + 1}/${frames.length}`;
+    $('prev').disabled = $('first').disabled = k === 0;
+    $('next').disabled = $('last').disabled = k === frames.length - 1;
+  }
+  // ----- đoán trước -----
+  function askOrGo() {
+    if (k >= frames.length - 1) { stop(); return; }
+    const nf = frames[k + 1];
+    if ($('guessMode').checked && nf.ask) {
+      stop();
+      $('guess').classList.add('show'); $('gq').textContent = nf.ask.q; $('gfb').textContent = `Điểm đoán: ${score[0]}/${score[1]}`;
+      $('gch').innerHTML = nf.ask.choices.map((c) => `<button class="btn">${esc(c)}</button>`).join('');
+      $('gch').querySelectorAll('button').forEach((b) => b.onclick = () => {
+        score[1]++;
+        if (b.textContent === String(nf.ask.answer)) { score[0]++; $('guess').classList.remove('show'); k++; show(); }
+        else { b.disabled = true; $('gfb').textContent = `Chưa đúng. Nhìn lại mã và biến rồi thử tiếp. (Điểm: ${score[0]}/${score[1]})`; }
+      });
+      return;
+    }
+    k++; show();
+  }
+  function stop() { clearInterval(timer); timer = null; $('play').textContent = '⏯ Tự chạy'; }
+  function play() {
+    if (timer) { stop(); return; }
+    if (k >= frames.length - 1) k = 0;
+    $('play').textContent = '⏸ Dừng';
+    timer = setInterval(askOrGo, 1600 / $('speed').value * 2);
+  }
+  function fit() { $('inp').rows = Math.min(10, $('inp').value.split('\n').length + 1); }
+  $('inp').addEventListener('input', fit);
+  function load(text) {
+    fit();
+    stop(); $('guess').classList.remove('show');
+    try { const d = A.parse(text); frames = A.run(d); $('err').textContent = ''; k = 0; show(); }
+    catch (e) { $('err').textContent = e.message || String(e); }
+  }
+  $('next').onclick = () => { stop(); askOrGo(); };
+  $('prev').onclick = () => { stop(); $('guess').classList.remove('show'); if (k > 0) { k--; show(); } };
+  $('first').onclick = () => { stop(); k = 0; show(); };
+  $('last').onclick = () => { stop(); k = frames.length - 1; show(); };
+  $('seek').oninput = (e) => { stop(); k = +e.target.value; show(); };
+  $('play').onclick = play;
+  $('speed').oninput = () => { if (timer) { stop(); play(); } };
+  $('run').onclick = () => load($('inp').value);
+  $('rand').onclick = () => { $('inp').value = A.random(); load($('inp').value); };
+  $('theme').onclick = () => { const r = document.documentElement; const dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; r.dataset.theme = dark ? 'light' : 'dark'; };
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'TEXTAREA') return;
+    if (e.key === 'ArrowRight') $('next').click(); else if (e.key === 'ArrowLeft') $('prev').click();
+    else if (e.key === ' ') { e.preventDefault(); play(); }
+  });
+  $('samples').innerHTML = A.samples.map(([v, note], i) => `<button class="chip" data-i="${i}" title="${esc(note)}">${esc(note)}</button>`).join('');
+  $('samples').querySelectorAll('button').forEach((b) => b.onclick = () => { $('inp').value = A.samples[b.dataset.i][0]; load($('inp').value); });
+  renderTabs();
+  $('inp').value = A.samples[0][0]; load($('inp').value);
+})();
+</script>
+</body>
+</html>

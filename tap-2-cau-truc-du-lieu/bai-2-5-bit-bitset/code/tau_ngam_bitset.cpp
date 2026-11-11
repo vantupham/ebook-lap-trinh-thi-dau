@@ -2,7 +2,6 @@
 using namespace std;
 const int MAXC = 512;
 int main() {
-    // Khi thi: bật freopen cho TAUNGAM.INP / TAUNGAM.OUT
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     int R, C, M;
@@ -13,7 +12,7 @@ int main() {
         cin >> row;
         for (int j = 0; j < C; j++)
             if (row[j] == '.') trong[i][j] = 1;
-        cu[i] = trong[i];                      // ban đầu: mọi ô trống
+        cu[i] = trong[i];                      // ban đầu: mọi ô nước
     }
     string s;
     cin >> s;

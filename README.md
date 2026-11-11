@@ -1,5 +1,7 @@
 # Tự học Lập trình thi đấu – từ HSG lớp 9 tới IOI
 
+**Tác giả:** Phạm Văn Tú
+
 Bộ ebook mở, viết bằng tiếng Việt, cho học sinh THPT tự học lập trình thi đấu. Lộ trình bám theo lịch thi của học sinh THPT: HSG lớp 9 cấp tỉnh/thành phố, chọn đội tuyển, Olympic 30/4, HSG lớp 12, HSG Quốc gia, rồi APIO và IOI.
 
 Bộ sách khác các tài liệu hiện có ở cách học:
@@ -22,7 +24,7 @@ Bộ sách khác các tài liệu hiện có ở cách học:
 | Đã qua HSG Quốc gia; nhắm đội tuyển, VOI, IOI | [Tập 4 · Chuyên đề nâng cao](tap-4-chuyen-de-nang-cao/) |
 | Muốn luyện đề, chia giờ, tránh mất điểm oan (dùng song song) | [Tập 5 · Tuyển tập đề và chiến lược thi](tap-5-de-thi-chien-luoc/) |
 
-**Đã hoàn thành:** [Tập 0](tap-0-nhap-mon/), [Tập 1](tap-1-nen-tang-thuat-toan/), [Tập 2](tap-2-cau-truc-du-lieu/), [Tập 3](tap-3-do-thi-qhd-nang-cao/), [Tập 4](tap-4-chuyen-de-nang-cao/) và [Tập 5](tap-5-de-thi-chien-luoc/): trọn bộ 6 tập. Mỗi tập 0–4 kèm đề thi thử (120 phút; Tập 3 và Tập 4 là 180 phút); Tập 5 có thêm 3 đề luyện và kế hoạch luyện thi. Học xong Tập 2, em có đủ kiến thức cho phần lớn đề HSG 12 cấp tỉnh/thành phố. **Bài có trang mô phỏng:** [Bài 2.4 – Ngăn xếp đơn điệu](tap-2-cau-truc-du-lieu/bai-2-4-ngan-xep-don-dieu/), kèm [trang mô phỏng](mo-phong/ngan-xep-don-dieu.html).
+**Đã hoàn thành:** [Tập 0](tap-0-nhap-mon/), [Tập 1](tap-1-nen-tang-thuat-toan/), [Tập 2](tap-2-cau-truc-du-lieu/), [Tập 3](tap-3-do-thi-qhd-nang-cao/), [Tập 4](tap-4-chuyen-de-nang-cao/) và [Tập 5](tap-5-de-thi-chien-luoc/): trọn bộ 6 tập. Mỗi tập 0–4 kèm đề thi thử (120 phút; Tập 3 và Tập 4 là 180 phút); Tập 5 có thêm 3 đề luyện và kế hoạch luyện thi. Học xong Tập 2, em có đủ kiến thức cho phần lớn đề HSG 12 cấp tỉnh/thành phố. **Trang mô phỏng từng bước:** các bài 0.1–0.9, 1.1–1.9, 2.1–2.10, 3.1–3.10 và 4.1–4.10 có trang mô phỏng tương tác (xem [danh sách](mo-phong/)); các tập còn lại đang được bổ sung.
 
 ## Cấu trúc bộ sách
 
@@ -92,7 +94,7 @@ Mọi góp ý, sửa lỗi, bài mới đều được hoan nghênh qua Issue ho
 
 ## Tác giả
 
-Bộ sách do **Phạm Văn Tú** biên soạn cùng một số công cụ. Mọi góp ý xin gửi qua Issue của kho này.
+Bộ sách do **Phạm Văn Tú** biên soạn. Mọi góp ý xin gửi qua Issue của kho này.
 
 ## Giấy phép
 

@@ -3,15 +3,17 @@ using namespace std;
 int main() {
     int n;
     cin >> n;
-    vector<int> a(n), dem(11, 0);
+    vector<int> dem(11, 0);
     for (int i = 0; i < n; i++) {
-        cin >> a[i];
-        dem[a[i]]++;
+        int x;
+        cin >> x;
+        dem[x]++;
     }
-    int cao = *max_element(a.begin(), a.end());
+    int cao = 10;
+    while (dem[cao] == 0) cao--;
     cout << cao << ' ' << dem[cao] << '\n';
     int tot = 0;
-    for (int k = 0; k < 11; k++)
+    for (int k = 0; k <= 10; k++)
         if (dem[k] > dem[tot]) tot = k;
     cout << tot << '\n';
 }

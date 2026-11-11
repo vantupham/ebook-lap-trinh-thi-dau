@@ -9,19 +9,25 @@
 
 ## Mục lục
 
-| Bài | Chuyên đề | Bài tiêu biểu |
+| Bài | Nội dung chính | Bài kiểu đề thi |
 | --- | --- | --- |
-| [4.1 Cây phân đoạn lười](bai-4-1-cay-phan-doan-luoi/) | Cập nhật cả đoạn và hỏi đoạn, O(log n) | CSES Range Updates and Sums |
-| [4.2 Chia căn](bai-4-2-chia-can/) | Chia mảng thành √n khối; thuật toán Mo | CSES Distinct Values Queries |
-| [4.3 Cây: Euler tour và HLD](bai-4-3-euler-hld/) | Truy vấn cây con, truy vấn đường đi | CSES Path Queries |
-| [4.4 Tối ưu QHĐ: bao lồi](bai-4-4-convex-hull-trick/) | Convex hull trick; bảng các kỹ thuật tối ưu khác | CSES Monster Game I |
-| [4.5 Thành phần liên thông mạnh](bai-4-5-scc/) | Kosaraju, đồ thị nén, QHĐ trên đồ thị nén; cầu và khớp | CSES Coin Collector |
-| [4.6 Luồng cực đại](bai-4-6-luong/) | Dinic, lát cắt nhỏ nhất, cặp ghép hai phía | CSES Download Speed |
-| [4.7 Hình học tính toán](bai-4-7-hinh-hoc/) | Tích có hướng, giao đoạn thẳng, diện tích đa giác | CSES Polygon Area |
-| [4.8 Mảng hậu tố](bai-4-8-mang-hau-to/) | Suffix array, LCP, đếm xâu con khác nhau | CSES Distinct Substrings |
-| [4.9 Lý thuyết trò chơi](bai-4-9-tro-choi/) | Thắng/thua, Nim, số Grundy | CSES Stick Game |
-| [4.10 Đề kiểu IOI](bai-4-10-de-kieu-ioi/) | Bài tương tác, output-only, chiến thuật subtask 5 giờ | Bài tương tác có trình chấm |
+| [4.1 Cây phân đoạn lười](bai-4-1-cay-phan-doan-luoi/) | Cập nhật cả đoạn và hỏi đoạn, O(log n); gán, cộng, lật | Đặt phòng |
+| [4.2 Chia căn](bai-4-2-chia-can/) | Chia mảng thành √n khối; thuật toán Mo | Màu nổi bật |
+| [4.3 Cây: Euler tour và HLD](bai-4-3-euler-hld/) | Truy vấn cây con, truy vấn đường đi | Mạng nước |
+| [4.4 Tối ưu QHĐ: bao lồi](bai-4-4-convex-hull-trick/) | Convex hull trick với deque, Li Chao | Nhảy đá |
+| [4.5 Thành phần liên thông mạnh](bai-4-5-scc/) | Kosaraju, đồ thị nén; cầu bằng vao/thap | Dây cầu |
+| [4.6 Luồng cực đại](bai-4-6-luong/) | Dinic, lát cắt nhỏ nhất, cặp ghép hai phía | Câu lạc bộ |
+| [4.7 Hình học tính toán](bai-4-7-hinh-hoc/) | Tích có hướng, giao đoạn thẳng, dây giày, bao lồi, Pick | Vườn cây |
+| [4.8 Mảng hậu tố](bai-4-8-mang-hau-to/) | Nhân đôi, Kasai, đếm xâu con, xâu con thứ k | Mật khẩu |
+| [4.9 Lý thuyết trò chơi](bai-4-9-tro-choi/) | Thắng/thua, Nim, số Grundy, Sprague–Grundy | Quân cờ trên đồ thị |
+| [4.10 Đề kiểu IOI](bai-4-10-de-kieu-ioi/) | Bài tương tác, grader tự viết, chiến thuật subtask 5 giờ | Đoán số tương tác |
 | [4.11 Đề thi thử](bai-4-11-de-thi-thu/) | 3 bài, 180 phút, kiểu đề chọn đội tuyển | Đề tự soạn |
+
+## Cách học tập này
+
+- Mọi bài 4.1–4.9 theo cùng một khuôn: bài toán mở màn, 10 phút tự nghĩ, lời giải ngây thơ, ý tưởng then chốt với hình chạy từng bước, bẫy kèm test phá, ví dụ giảm dần hỗ trợ, bài kiểu đề thi có gợi ý 3 tầng, flashcard và checkpoint. Mỗi bài có **hai trang mô phỏng** (liên kết ở đầu bài; danh sách ở [mo-phong](../mo-phong/)); bài 4.10 có thêm trang mô phỏng bài tương tác.
+
+- Các bài kiểu đề thi đọc/ghi file `TENBAI.INP`/`TENBAI.OUT` và chấm theo subtask như đề thật. Mọi đoạn mã trong tập được kiểm thử tự động bằng `kiem_tra.py` (so với lời giải vét cạn trên dữ liệu ngẫu nhiên).
 
 ## Checkpoint cuối Tập 4
 

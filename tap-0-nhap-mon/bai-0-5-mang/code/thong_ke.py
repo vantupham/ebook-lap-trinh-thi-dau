@@ -4,7 +4,9 @@ dem = [0] * 11
 for x in a:
     dem[x] += 1
 
-cao = max(a)
+cao = 10                      # dò từ điểm 10 xuống tới ô đầu tiên khác 0
+while dem[cao] == 0:
+    cao -= 1
 print(cao, dem[cao])
 
 tot = 0                       # điểm xuất hiện nhiều nhất

@@ -18,7 +18,7 @@ int main() {
             int ni = i + di[h], nj = j + dj[h];
             if (ni < 0 || ni >= R || nj < 0 || nj >= C) continue;
             if (g[ni][nj] == '#' || d[ni][nj] != -1) continue;
-            d[ni][nj] = d[i][j] + 1;
+            d[ni][nj] = d[i][j] + 1;            // đánh dấu ngay khi đưa vào
             q.push({ni, nj});
         }
     }

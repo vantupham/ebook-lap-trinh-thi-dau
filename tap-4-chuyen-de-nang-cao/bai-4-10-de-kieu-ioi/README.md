@@ -1,8 +1,18 @@
 # Bài 4.10 – Làm quen đề kiểu IOI
 
-> **Tập 4** · Cần biết trước: bài 1.6 (tìm kiếm nhị phân) · Thời lượng: khoảng 1,5 giờ đọc, 6 giờ thực hành
+> **Tập 4 · Chuyên đề nâng cao**
+> Cần biết trước: bài 1.4 (tìm kiếm nhị phân), bài 1.9 (stress test).
+> Thời lượng: khoảng 1,5 giờ đọc, cộng 6 giờ thực hành (1 tuần).
 
-**Học xong bài này, em sẽ:** làm được **bài tương tác** (hỏi – đáp với chương trình chấm); tự viết **grader** để thử ở nhà; có chiến lược **ăn điểm subtask** trong kỳ thi 5 giờ như VOI, chọn đội tuyển và IOI.
+**Học xong bài này, em sẽ:**
+
+- làm được **bài tương tác** (hỏi – đáp với chương trình chấm) và không quên **flush**;
+- tự viết **grader** để thử bài tương tác ở nhà;
+- biết cách nộp bài dạng **hàm** do grader gọi;
+- có chiến lược **ăn điểm subtask** trong kỳ thi 5 giờ như VOI, chọn đội tuyển và IOI.
+
+> [!TIP]
+> **Học cùng hai trang mô phỏng.** [Đoán số tương tác](../../mo-phong/t4-doan-so.html): thử ví dụ n = 10⁹ và đếm số câu hỏi. [Tìm kiếm nhị phân](../../mo-phong/t1-nhi-phan.html) (bài 1.4) để ôn lại bất biến lo ≤ x ≤ hi.
 
 ---
 
@@ -32,12 +42,49 @@ Một phiên mẫu với n = 10, x = 7:
 | `! 7` | |
 
 > [!IMPORTANT]
-> **Dừng lại và nghĩ.** Vì sao 30 lần là đủ với n = 10⁹? Điều gì xảy ra nếu chương trình quên **flush** sau mỗi lần in?
+> **Dừng lại và nghĩ.**
+> 1. Vì sao 30 lần hỏi là đủ với n = 10⁹?
+> 2. Điều gì xảy ra nếu chương trình quên **flush** sau mỗi lần in?
+> 3. Vì sao ở đây `mid` phải làm tròn **lên** ((lo + hi + 1) / 2)? Thử lo = 6, hi = 7 với cách làm tròn xuống.
 
 <details>
 <summary>Đáp án</summary>
 
-2³⁰ ≈ 1,07·10⁹ ≥ n, nên tìm kiếm nhị phân cần không quá 30 câu hỏi. Nếu không flush, câu hỏi nằm trong bộ đệm, grader không nhận được và cả hai bên **chờ nhau mãi**: kết quả là "Time Limit Exceeded" hoặc "Idleness".
+1. 2³⁰ ≈ 1,07·10⁹ ≥ n, nên tìm kiếm nhị phân cần không quá 30 câu hỏi.
+2. Câu hỏi nằm trong bộ đệm, grader không nhận được và cả hai bên **chờ nhau mãi**: kết quả là "Time Limit Exceeded" hoặc "Idleness".
+3. Làm tròn xuống: mid = 6, nếu trả 1 thì lo = 6, đoạn [6, 7] không đổi: lặp vô hạn. Câu hỏi "x ≥ mid?" đi với `lo = mid` cần làm tròn lên.
+
+</details>
+
+### Chạy từng bước
+
+Phiên mẫu n = 10, x = 7. Đoán grader trả gì trước khi mở.
+
+<details>
+<summary><b>Bước 1</b> – Bắt đầu: x ∈ [1, 10]</summary>
+
+![Bước 1](hinh/t4-doan-so-1.svg)
+
+</details>
+
+<details>
+<summary><b>Bước 2</b> – Hỏi 6</summary>
+
+![Bước 2](hinh/t4-doan-so-2.svg)
+
+</details>
+
+<details>
+<summary><b>Bước 3</b> – Hỏi 8</summary>
+
+![Bước 3](hinh/t4-doan-so-3.svg)
+
+</details>
+
+<details>
+<summary><b>Bước 4</b> – Hỏi 7: còn đúng một giá trị</summary>
+
+![Bước 4](hinh/t4-doan-so-4.svg)
 
 </details>
 
@@ -60,6 +107,27 @@ int main() {
 
 > [!WARNING]
 > **Bẫy: dùng `'\n'` thay vì `endl`** mà không gọi `cout.flush()`. Trong bài tương tác luôn flush sau mỗi câu hỏi. Đừng bật `cin.tie(0)` trừ khi tự flush.
+
+
+**Bản Python** của cùng chương trình: điền vào chỗ trống.
+
+```python
+n = int(input())
+lo, hi = 1, n
+while lo < hi:
+    mid = (lo + hi + 1) // 2
+    print("?", mid, ____)
+    if int(input()) == 1: lo = mid
+    else: hi = mid - 1
+print("!", lo, flush=True)
+```
+
+<details>
+<summary>Đáp án</summary>
+
+`flush=True`. Thiếu nó thì Python cũng giữ câu hỏi trong bộ đệm.
+
+</details>
 
 ---
 
@@ -120,4 +188,30 @@ flowchart TD
 | Luyện | [oj.uz](https://oj.uz/problems) | Mục IOI trên oj.uz | Đề IOI có grader |
 | Thử thách | Đề VOI các năm | [VNOI](https://oj.vnoi.info/) | Luyện trọn 5 giờ |
 
-**Checkpoint:** chạy grader ở mục 3 với 100 số x ngẫu nhiên, tất cả `OK`; làm trọn một đề IOI cũ trong 5 giờ và ghi lại điểm từng subtask.
+---
+
+## 6. Tóm tắt, flashcard và checkpoint
+
+**Tóm tắt trong 5 dòng.**
+
+1. Bài tương tác: in câu hỏi, **flush**, đọc câu trả lời; đếm số câu hỏi được phép trước khi code.
+2. Tìm nhị phân "x ≥ mid?" với `lo = mid` thì làm tròn mid lên.
+3. Tự viết grader bằng pipe để thử ở nhà; bài dạng hàm thì viết `main` gọi hàm của mình.
+4. Subtask chấm theo nhóm: ghép brute force với lời giải chính để giữ điểm nhóm nhỏ.
+5. Kỳ thi 5 giờ: đọc cả 3 bài trước, ăn subtask dễ, 30 phút cuối không viết mới.
+
+**Flashcard.**
+
+<details><summary>`endl` khác `'\n'` ở điểm nào?</summary>`endl` xuống dòng **và** flush bộ đệm.</details>
+<details><summary>Cần bao nhiêu câu hỏi cho n = 10⁶?</summary>20 (2²⁰ ≈ 1,05·10⁶).</details>
+<details><summary>Lỗi "Idleness limit exceeded" thường do đâu?</summary>Quên flush: grader không nhận được câu hỏi.</details>
+<details><summary>Subtask "n ≤ 20" gợi ý gì?</summary>Vét cạn 2ⁿ hoặc quay lui.</details>
+<details><summary>Quá 90 phút một bài không tiến triển thì sao?</summary>Chuyển sang bài khác, lấy subtask dễ trước.</details>
+
+**Checkpoint – em đã sẵn sàng sang đề thi thử nếu:**
+
+- [ ] Chạy grader ở mục 3 với 100 số x ngẫu nhiên, tất cả `OK`.
+- [ ] Giải thích được vì sao mid phải làm tròn lên (câu 3 mục 2).
+- [ ] Làm trọn một đề IOI cũ trong 5 giờ và ghi lại điểm từng subtask.
+
+Chưa đạt? Nếu vướng ô 1 hoặc 2, chạy trang mô phỏng đoán số với ví dụ "x nhỏ nhất" và đọc lại bài 1.4. Nếu vướng ô 3, đọc lại mục 4 và chọn một đề có nhiều subtask nhỏ để luyện chiến thuật.

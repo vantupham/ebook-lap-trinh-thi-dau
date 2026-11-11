@@ -5,7 +5,7 @@ int main() {
     cin.tie(nullptr);
     int n;
     cin >> n;
-    priority_queue<long long, vector<long long>, greater<long long>> pq;
+    priority_queue<long long, vector<long long>, greater<long long>> pq;   // heap nhỏ nhất
     for (int i = 0; i < n; i++) {
         long long x;
         cin >> x;

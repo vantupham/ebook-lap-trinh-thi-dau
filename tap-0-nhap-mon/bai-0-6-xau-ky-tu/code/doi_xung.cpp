@@ -6,8 +6,10 @@ int main() {
     for (char ch : s)
         if (isalnum((unsigned char)ch)) t += tolower(ch);
     bool ok = true;
-    int n = t.size();
-    for (int i = 0; i < n / 2; i++)
-        if (t[i] != t[n - 1 - i]) { ok = false; break; }
+    int i = 0, j = (int)t.size() - 1;
+    while (i < j) {                  // hai chỉ số đi vào giữa
+        if (t[i] != t[j]) { ok = false; break; }
+        i++; j--;
+    }
     cout << (ok ? "YES" : "NO") << '\n';
 }

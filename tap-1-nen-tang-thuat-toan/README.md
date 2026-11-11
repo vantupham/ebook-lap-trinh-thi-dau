@@ -27,6 +27,8 @@ Từ tập này, **C++ là ngôn ngữ chính**. Bản Python vẫn có cho lờ
 - **Đọc ràng buộc trước khi nghĩ thuật toán** (bài 1.1). Mọi bài từ 1.2 trở đi đều bắt đầu bằng bước này.
 - **Viết lời giải chậm trước, nhanh sau.** Lời giải chậm lấy subtask nhỏ và là "trọng tài" để kiểm tra lời giải nhanh (bài 1.9).
 - **Bảng chạy tay** cho mỗi thuật toán mới, như ở Tập 0.
+- **Mô phỏng trước, đọc sau.** Mỗi bài 1.1–1.9 có trang mô phỏng (liên kết ở đầu bài; danh sách đầy đủ ở [mo-phong](../mo-phong/)). Bật chế độ **Đoán trước**, chạy hết một ví dụ, rồi mở từng bước trong mục "Chạy từng bước".
+- **Ví dụ giảm dần hỗ trợ:** làm Ví dụ 2 (điền chỗ trống) và Ví dụ 3 (tự làm) trước khi mở lời giải; bài kiểu đề thi có gợi ý 3 tầng.
 
 ## Checkpoint cuối Tập 1
 

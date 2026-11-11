@@ -10,7 +10,8 @@ int main() {
     for (int r = 0; r < n; r++) {
         long long k;
         cin >> k;
-        if (gan_nhat.count(k) && gan_nhat[k] >= l) l = gan_nhat[k] + 1;
+        auto it = gan_nhat.find(k);
+        if (it != gan_nhat.end() && it->second >= l) l = it->second + 1;
         gan_nhat[k] = r;
         best = max(best, r - l + 1);
     }
